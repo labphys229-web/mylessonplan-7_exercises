@@ -1,1 +1,373 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Переведення одиниць довжини в систему СІ (7 клас)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .custom-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%204b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.25em;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4 sm:px-6 lg:px-8 text-gray-800">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header Card -->
+        <header class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 mb-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl mb-4 text-2xl font-bold">
+                <i class="fa-solid fa-ruler-combined"></i>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                Фізика 7 клас: Одиниці довжини в СІ
+            </h1>
+            <p class="mt-2 text-gray-600 text-base max-w-2xl mx-auto">
+                Оберіть правильне значення у метрах (м) із випадаючого списку для кожного із запропонованих завдань.
+            </p>
+            
+            <!-- Rules / Cheat Sheet Toggle -->
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <button id="toggle-rules-btn" class="inline-flex items-center px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-xl transition-colors">
+                    <i class="fa-solid fa-lightbulb mr-2"></i> Підказка (Префікси СІ)
+                </button>
+            </div>
 
+            <!-- Cheat Sheet Box (Hidden by default) -->
+            <div id="rules-box" class="hidden mt-6 text-left bg-indigo-50/70 rounded-xl p-4 md:p-5 border border-indigo-100 text-sm text-indigo-950 fade-in">
+                <h3 class="font-bold mb-2 flex items-center gap-2 text-indigo-900">
+                    <i class="fa-solid fa-book-open"></i> Пам'ятка для переведення в метри (м):
+                </h3>
+                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs md:text-sm">
+                    <li class="bg-white p-2 rounded border border-indigo-100"><strong>1 км (кілометр)</strong> = 1000 м (10³ м)</li>
+                    <li class="bg-white p-2 rounded border border-indigo-100"><strong>1 дм (дециметр)</strong> = 0,1 м (10⁻¹ м)</li>
+                    <li class="bg-white p-2 rounded border border-indigo-100"><strong>1 см (сантиметр)</strong> = 0,01 м (10⁻² м)</li>
+                    <li class="bg-white p-2 rounded border border-indigo-100"><strong>1 мм (міліметр)</strong> = 0,001 м (10⁻³ м)</li>
+                    <li class="bg-white p-2 rounded border border-indigo-100 sm:col-span-2"><strong>1 мкм (мікрометр)</strong> = 0,000001 м (10⁻⁶ м)</li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- Quiz Form -->
+        <form id="quiz-form" onsubmit="return false;">
+            <div id="questions-container" class="space-y-6">
+                <!-- Dynamic questions will be rendered here -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button type="button" id="submit-btn" onclick="checkAnswers()" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-circle"></i> Перевірити відповіді
+                </button>
+                <button type="button" id="reset-btn" onclick="resetQuiz()" class="w-full sm:w-auto px-6 py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-colors text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Очистити
+                </button>
+            </div>
+        </form>
+
+        <!-- Result Box -->
+        <div id="result-box" class="hidden mt-8 bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8 fade-in text-center">
+            <div id="score-icon" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4"></div>
+            <h2 id="score-title" class="text-2xl font-bold mb-2"></h2>
+            <p id="score-text" class="text-lg text-gray-600 mb-6"></p>
+            <div class="w-full bg-gray-200 rounded-full h-4 mb-6 overflow-hidden">
+                <div id="score-bar" class="bg-indigo-600 h-4 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+            <p class="text-sm text-gray-500">Ви можете переглянути детальний розбір правильних відповідей вище у кожному картці завдання.</p>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Data - 10 questions with 4 options each
+        const quizData = [
+            {
+                id: 1,
+                question: "Переведіть значення довжини у систему СІ: 3,5 км",
+                options: [
+                    "35 м",
+                    "350 м",
+                    "3500 м",
+                    "0,0035 м"
+                ],
+                correct: "3500 м",
+                explanation: "Оскільки 1 км = 1000 м, то 3,5 км = 3,5 × 1000 = 3500 м."
+            },
+            {
+                id: 2,
+                question: "Переведіть значення довжини у систему СІ: 250 см",
+                options: [
+                    "0,25 м",
+                    "2,5 м",
+                    "25 м",
+                    "2500 м"
+                ],
+                correct: "2,5 м",
+                explanation: "Оскільки 1 см = 0,01 м, то 250 см = 250 / 100 = 2,5 м."
+            },
+            {
+                id: 3,
+                question: "Переведіть значення довжини у систему СІ: 45 мм",
+                options: [
+                    "0,45 м",
+                    "0,045 м",
+                    "4,5 м",
+                    "0,0045 м"
+                ],
+                correct: "0,045 м",
+                explanation: "Оскільки 1 мм = 0,001 м, то 45 мм = 45 / 1000 = 0,045 м."
+            },
+            {
+                id: 4,
+                question: "Переведіть значення довжини у систему СІ: 8 дм",
+                options: [
+                    "80 м",
+                    "8 м",
+                    "0,8 м",
+                    "0,08 м"
+                ],
+                correct: "0,8 м",
+                explanation: "Оскільки 1 дм = 0,1 м, то 8 дм = 8 / 10 = 0,8 м."
+            },
+            {
+                id: 5,
+                question: "Переведіть значення довжини у систему СІ: 2 м 5 см",
+                options: [
+                    "2,5 м",
+                    "2,05 м",
+                    "2,005 м",
+                    "25 м"
+                ],
+                correct: "2,05 м",
+                explanation: "5 см = 0,05 м. Додаємо метри: 2 м + 0,05 м = 2,05 м."
+            },
+            {
+                id: 6,
+                question: "Переведіть значення довжини у систему СІ: 0,04 км",
+                options: [
+                    "4 м",
+                    "40 м",
+                    "400 м",
+                    "0,4 м"
+                ],
+                correct: "40 м",
+                explanation: "0,04 км = 0,04 × 1000 м = 40 м."
+            },
+            {
+                id: 7,
+                question: "Переведіть значення довжини у систему СІ: 7,2 см",
+                options: [
+                    "0,72 м",
+                    "0,072 м",
+                    "0,0072 м",
+                    "72 м"
+                ],
+                correct: "0,072 м",
+                explanation: "7,2 см = 7,2 / 100 м = 0,072 м."
+            },
+            {
+                id: 8,
+                question: "Переведіть значення довжини у систему СІ: 600 мм",
+                options: [
+                    "6 м",
+                    "0,6 м",
+                    "0,06 м",
+                    "60 м"
+                ],
+                correct: "0,6 м",
+                explanation: "600 мм = 600 / 1000 м = 0,6 м."
+            },
+            {
+                id: 9,
+                question: "Переведіть значення довжини у систему СІ: 12 мкм",
+                options: [
+                    "0,012 м",
+                    "0,00012 м",
+                    "0,000012 м",
+                    "1,2 м"
+                ],
+                correct: "0,000012 м",
+                explanation: "Мікро (1 мкм) означає мільйонну частку метра (10⁻⁶ м). Отже, 12 мкм = 0,000012 м."
+            },
+            {
+                id: 10,
+                question: "Переведіть значення довжини у систему СІ: 50 дм",
+                options: [
+                    "0,5 м",
+                    "5 м",
+                    "500 м",
+                    "50 м"
+                ],
+                correct: "5 м",
+                explanation: "50 дм = 50 / 10 м = 5 м."
+            }
+        ];
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-gray-200 p-5 md:p-6 transition-all hover:border-indigo-200';
+                card.id = `q-card-${q.id}`;
+
+                let optionsHTML = `<option value="" disabled selected>-- Оберіть варіант відповіді --</option>`;
+                q.options.forEach(opt => {
+                    optionsHTML += `<option value="${opt}">${opt}</option>`;
+                });
+
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm border border-indigo-100">
+                                ${index + 1}
+                            </span>
+                            <h3 class="text-base md:text-lg font-semibold text-gray-900 pt-0.5">
+                                ${q.question}
+                            </h3>
+                        </div>
+                        <span id="badge-${q.id}" class="hidden self-start sm:self-center px-3 py-1 rounded-full text-xs font-semibold"></span>
+                    </div>
+
+                    <div class="mt-2">
+                        <label for="select-${q.id}" class="block text-xs font-medium text-gray-500 mb-1">
+                            Вариант відповіді у метрах (м):
+                        </label>
+                        <select id="select-${q.id}" class="custom-select w-full p-3.5 bg-gray-50 border border-gray-300 rounded-xl text-gray-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all cursor-pointer">
+                            ${optionsHTML}
+                        </select>
+                    </div>
+
+                    <div id="explanation-${q.id}" class="hidden mt-4 p-3.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-700 fade-in">
+                        <strong class="text-gray-900 flex items-center gap-1.5 mb-1">
+                            <i class="fa-solid fa-circle-info text-indigo-500"></i> Пояснення:
+                        </strong>
+                        <p>${q.explanation}</p>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswers() {
+            let score = 0;
+            let answeredAll = true;
+
+            quizData.forEach(q => {
+                const selectEl = document.getElementById(`select-${q.id}`);
+                const card = document.getElementById(`q-card-${q.id}`);
+                const badge = document.getElementById(`badge-${q.id}`);
+                const explanation = document.getElementById(`explanation-${q.id}`);
+                const userVal = selectEl.value;
+
+                if (!userVal) {
+                    answeredAll = false;
+                }
+
+                // Reset states
+                card.classList.remove('border-green-400', 'bg-green-50/20', 'border-red-400', 'bg-red-50/20');
+                badge.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+                explanation.classList.remove('hidden');
+
+                if (userVal === q.correct) {
+                    score++;
+                    card.classList.add('border-green-400', 'bg-green-50/20');
+                    badge.classList.add('bg-green-100', 'text-green-800');
+                    badge.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Правильно`;
+                } else {
+                    card.classList.add('border-red-400', 'bg-red-50/20');
+                    badge.classList.add('bg-red-100', 'text-red-800');
+                    if (!userVal) {
+                        badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Не обрано`;
+                    } else {
+                        badge.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Неправильно`;
+                    }
+                }
+            });
+
+            // Display Score Summary
+            const resultBox = document.getElementById('result-box');
+            const scoreIcon = document.getElementById('score-icon');
+            const scoreTitle = document.getElementById('score-title');
+            const scoreText = document.getElementById('score-text');
+            const scoreBar = document.getElementById('score-bar');
+
+            const percentage = Math.round((score / quizData.length) * 100);
+
+            resultBox.classList.remove('hidden');
+            scoreBar.style.width = `${percentage}%`;
+
+            if (percentage === 100) {
+                scoreIcon.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 bg-green-100 text-green-600';
+                scoreIcon.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+                scoreTitle.textContent = 'Відмінно! 🏆';
+                scoreText.textContent = `Ви відповіли правильно на всі ${score} з ${quizData.length} питань (${percentage}%). Чудова робота!`;
+            } else if (percentage >= 70) {
+                scoreIcon.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 bg-blue-100 text-blue-600';
+                scoreIcon.innerHTML = `<i class="fa-solid fa-thumbs-up"></i>`;
+                scoreTitle.textContent = 'Добре виконано! 👍';
+                scoreText.textContent = `Ви відповіли правильно на ${score} з ${quizData.length} питань (${percentage}%). Проаналізуйте помилки нижче.`;
+            } else {
+                scoreIcon.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 bg-amber-100 text-amber-600';
+                scoreIcon.innerHTML = `<i class="fa-solid fa-book-reader"></i>`;
+                scoreTitle.textContent = 'Потрібно ще повторити 📖';
+                scoreText.textContent = `Ваш результат: ${score} з ${quizData.length} (${percentage}%). Ознайомтеся з підказками та спробуйте ще раз!`;
+            }
+
+            // Scroll result into view smoothly
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function resetQuiz() {
+            quizData.forEach(q => {
+                const selectEl = document.getElementById(`select-${q.id}`);
+                const card = document.getElementById(`q-card-${q.id}`);
+                const badge = document.getElementById(`badge-${q.id}`);
+                const explanation = document.getElementById(`explanation-${q.id}`);
+
+                selectEl.selectedIndex = 0;
+                card.classList.remove('border-green-400', 'bg-green-50/20', 'border-red-400', 'bg-red-50/20');
+                badge.classList.add('hidden');
+                explanation.classList.add('hidden');
+            });
+
+            const resultBox = document.getElementById('result-box');
+            resultBox.classList.add('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Rules toggle button listener
+        document.getElementById('toggle-rules-btn').addEventListener('click', () => {
+            const rulesBox = document.getElementById('rules-box');
+            rulesBox.classList.toggle('hidden');
+        });
+
+        // Initialize quiz on load
+        window.onload = function() {
+            renderQuestions();
+        };
+    </script>
+</body>
+</html>
