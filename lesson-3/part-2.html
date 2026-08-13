@@ -151,4 +151,162 @@
                 id: 8,
                 question: "Переведіть значення маси у систему СІ: 15 ц",
                 options: ["150 кг", "1500 кг", "15000 кг", "15 кг"],
-                correct: "150
+                correct: "1500 кг",
+                explanation: "15 ц = 15 × 100 кг = 1500 кг."
+            },
+            {
+                id: 9,
+                question: "Переведіть значення маси у систему СІ: 50 мг",
+                options: ["0,05 кг", "0,005 кг", "0,0005 кг", "0,00005 кг"],
+                correct: "0,00005 кг",
+                explanation: "50 мг = 50 / 1000000 кг = 0,00005 кг."
+            },
+            {
+                id: 10,
+                question: "Переведіть значення маси у систему СІ: 4 кг 50 г",
+                options: ["4,5 кг", "4,05 кг", "4,005 кг", "45 кг"],
+                correct: "4,05 кг",
+                explanation: "50 г = 0,05 кг. Додаємо кілограми: 4 кг + 0,05 кг = 4,05 кг."
+            }
+        ];
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 p-5 md:p-6 transition-all hover:border-emerald-200';
+                card.id = `q-card-${q.id}`;
+
+                let optionsHTML = `<option value="" disabled selected>-- Оберіть варіант відповіді --</option>`;
+                q.options.forEach(opt => {
+                    optionsHTML += `<option value="${opt}">${opt}</option>`;
+                });
+
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-sm border border-emerald-100">
+                                ${index + 1}
+                            </span>
+                            <h3 class="text-base md:text-lg font-semibold text-slate-900 pt-0.5">
+                                ${q.question}
+                            </h3>
+                        </div>
+                        <span id="badge-${q.id}" class="hidden self-start sm:self-center px-3 py-1 rounded-full text-xs font-semibold"></span>
+                    </div>
+
+                    <div class="mt-2">
+                        <label for="select-${q.id}" class="block text-xs font-medium text-slate-500 mb-1">
+                            Варіант відповіді у кілограмах (кг):
+                        </label>
+                        <select id="select-${q.id}" class="custom-select w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white transition-all cursor-pointer">
+                            ${optionsHTML}
+                        </select>
+                    </div>
+
+                    <div id="explanation-${q.id}" class="hidden mt-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700 fade-in">
+                        <strong class="text-slate-900 flex items-center gap-1.5 mb-1">
+                            <i class="fa-solid fa-circle-info text-emerald-500"></i> Пояснення:
+                        </strong>
+                        <p>${q.explanation}</p>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswers() {
+            let score = 0;
+
+            quizData.forEach(q => {
+                const selectEl = document.getElementById(`select-${q.id}`);
+                const card = document.getElementById(`q-card-${q.id}`);
+                const badge = document.getElementById(`badge-${q.id}`);
+                const explanation = document.getElementById(`explanation-${q.id}`);
+                const userVal = selectEl.value;
+
+                card.classList.remove('border-emerald-500', 'bg-emerald-50/20', 'border-rose-400', 'bg-rose-50/20');
+                badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+                explanation.classList.remove('hidden');
+
+                if (userVal === q.correct) {
+                    score++;
+                    card.classList.add('border-emerald-500', 'bg-emerald-50/20');
+                    badge.classList.add('bg-emerald-100', 'text-emerald-800');
+                    badge.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Правильно`;
+                } else {
+                    card.classList.add('border-rose-400', 'bg-rose-50/20');
+                    badge.classList.add('bg-rose-100', 'text-rose-800');
+                    if (!userVal) {
+                        badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Не обрано`;
+                    } else {
+                        badge.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Неправильно`;
+                    }
+                }
+            });
+
+            const resultBox = document.getElementById('result-box');
+            const scoreIcon = document.getElementById('score-icon');
+            const scoreTitle = document.getElementById('score-title');
+            const scoreText = document.getElementById('score-text');
+            const scoreBar = document.getElementById('score-bar');
+
+            const percentage = Math.round((score / quizData.length) * 100);
+
+            resultBox.classList.remove('hidden');
+            scoreBar.style.width = `${percentage}%`;
+
+            if (percentage === 100) {
+                scoreIcon.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 bg-emerald-100 text-emerald-600';
+                scoreIcon.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+                scoreTitle.textContent = 'Відмінно! 🏆';
+                scoreText.textContent = `Ви правильно відповіли на всі ${score} з ${quizData.length} питань (${percentage}%). Чудова робота!`;
+            } else if (percentage >= 70) {
+                scoreIcon.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 bg-sky-100 text-sky-600';
+                scoreIcon.innerHTML = `<i class="fa-solid fa-thumbs-up"></i>`;
+                scoreTitle.textContent = 'Добре виконано! 👍';
+                scoreText.textContent = `Ваш результат: ${score} з ${quizData.length} (${percentage}%). Перегляньте підказки до помилкових відповідей.`;
+            } else {
+                scoreIcon.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 bg-amber-100 text-amber-600';
+                scoreIcon.innerHTML = `<i class="fa-solid fa-book-open"></i>`;
+                scoreTitle.textContent = 'Потрібно ще повторити 📖';
+                scoreText.textContent = `Ваш результат: ${score} з ${quizData.length} (${percentage}%). Ознайомтеся з поясненнями та спробуйте ще раз!`;
+            }
+
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function resetQuiz() {
+            quizData.forEach(q => {
+                const selectEl = document.getElementById(`select-${q.id}`);
+                const card = document.getElementById(`q-card-${q.id}`);
+                const badge = document.getElementById(`badge-${q.id}`);
+                const explanation = document.getElementById(`explanation-${q.id}`);
+
+                selectEl.selectedIndex = 0;
+                card.classList.remove('border-emerald-500', 'bg-emerald-50/20', 'border-rose-400', 'bg-rose-50/20');
+                badge.classList.add('hidden');
+                explanation.classList.add('hidden');
+            });
+
+            document.getElementById('result-box').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Toggle Rules
+        document.getElementById('toggle-rules-btn').addEventListener('click', () => {
+            document.getElementById('rules-box').classList.toggle('hidden');
+        });
+
+        // Initialize quiz immediately or on DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderQuestions);
+        } else {
+            renderQuestions();
+        }
+    </script>
+</body>
+</html>
