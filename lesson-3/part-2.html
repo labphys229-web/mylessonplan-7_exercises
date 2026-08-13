@@ -1,19 +1,154 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Переведення одиниць маси в систему СІ (7 клас)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .custom-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%204b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.25em;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4 sm:px-6 lg:px-8 text-slate-800">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header Card -->
+        <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl mb-4 text-2xl font-bold">
+                <i class="fa-solid fa-weight-scale"></i>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Фізика 7 клас: Одиниці маси в СІ
+            </h1>
+            <p class="mt-2 text-slate-600 text-base max-w-2xl mx-auto">
+                Оберіть правильне значення у кілограмах (кг) із випадаючого списку для кожного з 10 завдань.
+            </p>
+            
+            <!-- Rules / Cheat Sheet Toggle -->
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <button id="toggle-rules-btn" class="inline-flex items-center px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-xl transition-colors">
+                    <i class="fa-solid fa-lightbulb mr-2"></i> Підказка (Префікси та одиниці маси)
+                </button>
+            </div>
+
+            <!-- Cheat Sheet Box -->
+            <div id="rules-box" class="hidden mt-6 text-left bg-emerald-50/70 rounded-xl p-4 md:p-5 border border-emerald-100 text-sm text-emerald-950 fade-in">
+                <h3 class="font-bold mb-2 flex items-center gap-2 text-emerald-900">
+                    <i class="fa-solid fa-book-open"></i> Пам'ятка для переведення у кілограми (кг):
+                </h3>
+                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs md:text-sm">
+                    <li class="bg-white p-2.5 rounded-lg border border-emerald-100"><strong>1 т (тонна)</strong> = 1000 кг (10³ кг)</li>
+                    <li class="bg-white p-2.5 rounded-lg border border-emerald-100"><strong>1 ц (центнер)</strong> = 100 кг (10² кг)</li>
+                    <li class="bg-white p-2.5 rounded-lg border border-emerald-100"><strong>1 г (грам)</strong> = 0,001 кг (10⁻³ кг)</li>
+                    <li class="bg-white p-2.5 rounded-lg border border-emerald-100"><strong>1 мг (міліграм)</strong> = 0,000001 кг (10⁻⁶ кг)</li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- Quiz Form -->
+        <form id="quiz-form" onsubmit="return false;">
+            <div id="questions-container" class="space-y-6">
+                <!-- Dynamic questions rendered via JS -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button type="button" id="submit-btn" onclick="checkAnswers()" class="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-circle"></i> Перевірити відповіді
+                </button>
+                <button type="button" id="reset-btn" onclick="resetQuiz()" class="w-full sm:w-auto px-6 py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-colors text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Очистити
+                </button>
+            </div>
+        </form>
+
+        <!-- Result Box -->
+        <div id="result-box" class="hidden mt-8 bg-white rounded-2xl shadow-lg border border-slate-200 p-6 md:p-8 fade-in text-center">
+            <div id="score-icon" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4"></div>
+            <h2 id="score-title" class="text-2xl font-bold mb-2"></h2>
+            <p id="score-text" class="text-lg text-slate-600 mb-6"></p>
+            <div class="w-full bg-slate-200 rounded-full h-4 mb-6 overflow-hidden">
+                <div id="score-bar" class="bg-emerald-600 h-4 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+            <p class="text-sm text-slate-500">Детальні пояснення до кожного питання доступні вище у картках після перевірки.</p>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                id: 1,
+                question: "Переведіть значення маси у систему СІ: 2,5 т",
+                options: ["250 кг", "2500 кг", "25000 кг", "0,0025 кг"],
+                correct: "2500 кг",
+                explanation: "Оскільки 1 т = 1000 кг, то 2,5 т = 2,5 × 1000 = 2500 кг."
+            },
+            {
+                id: 2,
+                question: "Переведіть значення маси у систему СІ: 450 г",
+                options: ["4,5 кг", "0,45 кг", "0,045 кг", "450000 кг"],
+                correct: "0,45 кг",
+                explanation: "Оскільки 1 г = 0,001 кг (1000 г = 1 кг), то 450 г = 450 / 1000 = 0,45 кг."
+            },
+            {
+                id: 3,
+                question: "Переведіть значення маси у систему СІ: 3 ц",
+                options: ["30 кг", "300 кг", "3000 кг", "0,03 кг"],
+                correct: "300 кг",
+                explanation: "Оскільки 1 ц = 100 кг, то 3 ц = 3 × 100 = 300 кг."
+            },
+            {
+                id: 4,
+                question: "Переведіть значення маси у систему СІ: 1200 мг",
+                options: ["1,2 кг", "0,012 кг", "0,0012 кг", "0,000012 кг"],
+                correct: "0,0012 кг",
+                explanation: "Міліграм — це мільйонна частка кілограма (1 мг = 0,000001 кг). Отже, 1200 мг = 1200 / 1000000 = 0,0012 кг."
+            },
             {
                 id: 5,
                 question: "Переведіть значення маси у систему СІ: 3 кг 400 г",
-                options: [
-                    "3,4 кг",
-                    "3,04 кг",
-                    "34 кг",
-                    "340 кг"
-                ],
+                options: ["3,4 кг", "3,04 кг", "34 кг", "340 кг"],
                 correct: "3,4 кг",
                 explanation: "400 г = 0,4 кг. Додаємо кілограми: 3 кг + 0,4 кг = 3,4 кг."
             },
             {
                 id: 6,
-<!-- ... existing code ... -->
-```
-
-Усі варіанти відповідей у списку тепер чіткі, унікальні та відповідають умові (4 варіанти на кожне завдання).
+                question: "Переведіть значення маси у систему СІ: 0,05 т",
+                options: ["5 кг", "50 кг", "500 кг", "0,5 кг"],
+                correct: "50 кг",
+                explanation: "0,05 т = 0,05 × 1000 кг = 50 кг."
+            },
+            {
+                id: 7,
+                question: "Переведіть значення маси у систему СІ: 85 г",
+                options: ["0,85 кг", "0,085 кг", "0,0085 кг", "8,5 кг"],
+                correct: "0,085 кг",
+                explanation: "85 г = 85 / 1000 кг = 0,085 кг."
+            },
+            {
+                id: 8,
+                question: "Переведіть значення маси у систему СІ: 15 ц",
+                options: ["150 кг", "1500 кг", "15000 кг", "15 кг"],
+                correct: "150
