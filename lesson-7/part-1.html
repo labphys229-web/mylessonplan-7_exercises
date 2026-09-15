@@ -1,1 +1,370 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інтерактивний тест: Будова речовини</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+            --correct: #16a34a;
+            --correct-bg: #dcfce7;
+            --wrong: #dc2626;
+            --wrong-bg: #fee2e2;
+        }
 
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+
+        .question-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 12px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option-btn {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary);
+            background-color: #eff6ff;
+            font-weight: 500;
+        }
+
+        .option-btn.correct-show {
+            background-color: var(--correct-bg) !important;
+            border-color: var(--correct) !important;
+            color: #14532d !important;
+            font-weight: 600;
+        }
+
+        .option-btn.wrong-show {
+            background-color: var(--wrong-bg) !important;
+            border-color: var(--wrong) !important;
+            color: #7f1d1d !important;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 24px;
+            margin-bottom: 32px;
+        }
+
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .result-box {
+            display: none;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            border: 2px solid var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .result-score {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 12px 0;
+        }
+
+        .retry-btn {
+            background-color: #475569;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .retry-btn:hover {
+            background-color: #334155;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Тест: Будова речовини та світ частинок</h1>
+        <div class="subtitle">Дайте відповіді на 8 запитань та перевірте свої знання</div>
+    </header>
+
+    <div id="quiz"></div>
+
+    <div class="actions" id="actions">
+        <button class="submit-btn" onclick="checkAnswers()">Завершити тест</button>
+    </div>
+
+    <div class="result-box" id="result">
+        <div class="result-title">Ваш результат:</div>
+        <div class="result-score" id="score">0 / 8</div>
+        <div id="result-text"></div>
+        <button class="retry-btn" onclick="resetQuiz()">Пройти знову</button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    {
+        q: "1. Із запропонованих тверджень виберіть правильне:",
+        a: [
+            "а) всі тіла складаються з найдрібніших частинок",
+            "б) тіла неподільні",
+            "в) атоми речовини не взаємодіють між собою",
+            "г) молекули перебувають у стані спокою"
+        ],
+        correct: 0
+    },
+    {
+        q: "2. Із запропонованих тверджень виберіть правильне:",
+        a: [
+            "а) молекула може складатися із половини атома",
+            "б) молекули різних речовин однакові",
+            "в) молекула речовини неподільна",
+            "г) молекула може складатися із сотні атомів"
+        ],
+        correct: 3
+    },
+    {
+        q: "3. Закінчіть речення: «У центрі атома знаходиться…»",
+        a: [
+            "а) молекула",
+            "б) електрон",
+            "в) інший атом",
+            "г) ядро"
+        ],
+        correct: 3
+    },
+    {
+        q: "4. Закінчіть речення: «Навколо ядра атома рухається …»",
+        a: [
+            "а) інший атом",
+            "б) йон",
+            "в) електрон",
+            "г) молекула"
+        ],
+        correct: 2
+    },
+    {
+        q: "5. Зазначте склад молекули води:",
+        a: [
+            "а) один атом Оксигену та два атоми Гідрогену",
+            "б) один атом Оксигену та один атом Гідрогену",
+            "в) два атоми Оксигену",
+            "г) два атоми Гідрогену"
+        ],
+        correct: 0
+    },
+    {
+        q: "6. Зазначте склад молекули кисню:",
+        a: [
+            "а) один атом Оксигену та один атом Гідрогену",
+            "б) два атоми Оксигену",
+            "в) один атом Оксигену",
+            "г) два атоми Гідрогену"
+        ],
+        correct: 1
+    },
+    {
+        q: "7. В якому рядку записані представники лише з макросвіту?",
+        a: [
+            "а) потяг, ядро, автомобіль",
+            "б) ноутбук, зоряні скупчення, ножиці",
+            "в) будинок, книга, гори",
+            "г) виделка, нейтрон, місто"
+        ],
+        correct: 2
+    },
+    {
+        q: "8. В якому рядку записані представники лише з мікросвіту?",
+        a: [
+            "а) молекула, елементарна частинка, голка",
+            "б) йон, протон, мураха",
+            "в) ядро, атом, електрон",
+            "г) ядро, крихта, нейтрон"
+        ],
+        correct: 2
+    }
+];
+
+let userAnswers = new Array(quizData.length).fill(null);
+
+function renderQuiz() {
+    const quizContainer = document.getElementById('quiz');
+    quizContainer.innerHTML = '';
+
+    quizData.forEach((item, qIdx) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        
+        const qTitle = document.createElement('div');
+        qTitle.className = 'question-title';
+        qTitle.textContent = item.q;
+        card.appendChild(qTitle);
+
+        const optionsContainer = document.createElement('div');
+        optionsContainer.className = 'options';
+
+        item.a.forEach((optText, oIdx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            if (userAnswers[qIdx] === oIdx) {
+                btn.classList.add('selected');
+            }
+            btn.textContent = optText;
+            btn.onclick = () => selectOption(qIdx, oIdx);
+            optionsContainer.appendChild(btn);
+        });
+
+        card.appendChild(optionsContainer);
+        quizContainer.appendChild(card);
+    });
+}
+
+function selectOption(qIdx, oIdx) {
+    userAnswers[qIdx] = oIdx;
+    renderQuiz();
+}
+
+function checkAnswers() {
+    let score = 0;
+    const cards = document.querySelectorAll('.question-card');
+
+    cards.forEach((card, qIdx) => {
+        const btns = card.querySelectorAll('.option-btn');
+        const correctIdx = quizData[qIdx].correct;
+        const selectedIdx = userAnswers[qIdx];
+
+        btns.forEach((btn, oIdx) => {
+            btn.disabled = true;
+            if (oIdx === correctIdx) {
+                btn.classList.add('correct-show');
+            }
+            if (selectedIdx === oIdx && selectedIdx !== correctIdx) {
+                btn.classList.add('wrong-show');
+            }
+        });
+
+        if (selectedIdx === correctIdx) {
+            score++;
+        }
+    });
+
+    document.getElementById('actions').style.display = 'none';
+    const resultBox = document.getElementById('result');
+    resultBox.style.display = 'block';
+    
+    const scoreElem = document.getElementById('score');
+    scoreElem.textContent = `${score} / ${quizData.length}`;
+
+    const textElem = document.getElementById('result-text');
+    if (score === quizData.length) {
+        textElem.textContent = 'Відмінно! Ви чудово засвоїли тему.';
+    } else if (score >= quizData.length / 2) {
+        textElem.textContent = 'Добре! Але є можливість покращити результат.';
+    } else {
+        textElem.textContent = 'Варто ще раз повторити матеріал параграфа.';
+    }
+
+    resultBox.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetQuiz() {
+    userAnswers = new Array(quizData.length).fill(null);
+    document.getElementById('actions').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    renderQuiz();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
