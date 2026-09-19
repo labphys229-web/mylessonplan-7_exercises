@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фізика: Узагальнення та систематизація знань</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .option-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.25);
+        }
+        .pulse-subtle {
+            animation: pulse-slow 2s infinite;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start p-4 md:p-6 text-slate-800 min-h-screen">
+
+    <div class="w-full max-w-4xl">
+        <!-- Header Controls -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 px-2">
+            <div class="flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-atom text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-extrabold text-xl md:text-2xl leading-tight">Фізика: Повторення</h1>
+                    <p class="text-indigo-200 text-xs">Узагальнення та систематизація знань (За презентацією)</p>
+                </div>
+            </div>
+
+            <!-- Top Switchers -->
+            <div class="flex items-center space-x-2">
+                <!-- Mode Switcher Tabs -->
+                <div class="bg-black/30 p-1.5 rounded-2xl border border-white/10 flex items-center gap-1">
+                    <button id="modeGameBtn" onclick="switchMode('game')" class="px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-2 bg-white text-indigo-900 shadow">
+                        <i class="fa-solid fa-gamepad"></i>
+                        <span>Гра-Тест</span>
+                    </button>
+                    <button id="modePreviewBtn" onclick="switchMode('preview')" class="px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-2 text-white hover:text-indigo-200">
+                        <i class="fa-solid fa-eye"></i>
+                        <span>Перегляд відповідей</span>
+                    </button>
+                </div>
+
+                <!-- Sound Toggle Button -->
+                <button id="soundToggle" onclick="toggleSound()" class="px-3 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition backdrop-blur-md flex items-center space-x-2 text-sm border border-white/10" title="Увімкнути/вимкнути звук">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-emerald-400"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Game View -->
+        <div id="gameView" class="block">
+            <div id="quizCard" class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+                
+                <!-- Progress Bar & Attempts -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="questionNumText" class="text-xs font-bold uppercase tracking-wider text-indigo-600">Запитання 1 з 16</span>
+                        <span id="attemptsBadge" class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-right text-xs"></i>
+                            Спроба: <span id="attemptsLeft">1</span> з 2
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full transition-all duration-500 w-0"></div>
+                    </div>
+                </div>
+
+                <!-- Question Text & Media -->
+                <div id="questionContainer" class="mb-6">
+                    <h2 id="questionTitle" class="text-xl md:text-2xl font-bold text-slate-800 leading-snug">
+                        Завантаження запитання...
+                    </h2>
+                    <div id="questionVisual" class="mt-4 hidden">
+                        <!-- Dynamic SVG Illustration -->
+                    </div>
+                </div>
+
+                <!-- Options List -->
+                <div id="optionsGrid" class="grid grid-cols-1 gap-3.5 mb-6">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Feedback Banner -->
+                <div id="feedbackBanner" class="hidden p-4 rounded-2xl mb-6 flex items-start gap-3 transition-all duration-300">
+                    <div id="feedbackIcon" class="text-xl mt-0.5"></div>
+                    <div class="flex-1">
+                        <h4 id="feedbackTitle" class="font-bold text-sm"></h4>
+                        <p id="feedbackText" class="text-xs mt-0.5 leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <!-- Card Footer Controls -->
+                <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+                    <div class="text-xs text-slate-500 font-medium">
+                        Набрано балів: <span id="scoreCounter" class="font-bold text-indigo-600">0</span>
+                    </div>
+                    <button id="nextBtn" onclick="nextQuestion()" disabled class="px-6 py-3 rounded-xl bg-slate-200 text-slate-400 font-bold text-sm transition flex items-center space-x-2 cursor-not-allowed">
+                        <span>Наступне</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Results Screen -->
+            <div id="resultsCard" class="hidden glass-card rounded-3xl p-8 shadow-2xl text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-3xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-2">Тест завершено!</h2>
+                <p class="text-slate-600 text-sm mb-6">Чудова робота! Ось ваші результати повторення:</p>
+
+                <div class="grid grid-cols-3 gap-3 mb-8">
+                    <div class="p-4 bg-indigo-50/80 rounded-2xl border border-indigo-100">
+                        <div class="text-xs text-indigo-600 font-semibold mb-1">Всього питань</div>
+                        <div class="text-2xl font-bold text-indigo-900" id="totalQuestionsStat">16</div>
+                    </div>
+                    <div class="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-100">
+                        <div class="text-xs text-emerald-600 font-semibold mb-1">З 1-ї спроби</div>
+                        <div class="text-2xl font-bold text-emerald-900" id="correctFirstTryStat">0</div>
+                    </div>
+                    <div class="p-4 bg-purple-50/80 rounded-2xl border border-purple-100">
+                        <div class="text-xs text-purple-600 font-semibold mb-1">Підсумковий бал</div>
+                        <div class="text-2xl font-bold text-purple-900" id="finalScoreStat">0</div>
+                    </div>
+                </div>
+
+                <div id="resultsList" class="text-left space-y-2 mb-8 max-h-60 overflow-y-auto pr-1"></div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="switchMode('preview')" class="flex-1 py-4 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-eye"></i>Переглянути відповіді
+                    </button>
+                    <button onclick="restartQuiz()" class="flex-1 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 hover:opacity-95 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i>Пройти знову
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Preview View -->
+        <div id="previewView" class="hidden">
+            <div class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl">
+                <!-- Header Controls -->
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6 pb-6 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-book-open text-indigo-600"></i>
+                            Попередній перегляд запитань
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Перегляд усіх 16 запитань презентації з правильною відповіддю та поясненням</p>
+                    </div>
+
+                    <!-- Filter Category Buttons -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="filterPreview('all')" id="filter-all" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-indigo-600 text-white shadow">Усі (16)</button>
+                        <button onclick="filterPreview('phenomena')" id="filter-phenomena" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200">Фізичні явища</button>
+                        <button onclick="filterPreview('units')" id="filter-units" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200">Одиниці та величини</button>
+                        <button onclick="filterPreview('matter')" id="filter-matter" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200">Будова речовини</button>
+                        <button onclick="filterPreview('measure')" id="filter-measure" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200">Вимірювання</button>
+                    </div>
+                </div>
+
+                <!-- Preview Grid List -->
+                <div id="previewGrid" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-lightbulb text-amber-500"></i> Натисніть «Грати це питання», щоб перейти безпосередньо до нього.</span>
+                    <button onclick="switchMode('game')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> Перейти до гри
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Complete Database of questions strictly from presentation slides 1-9
+        const questions = [
+            // Slide 1
+            {
+                id: 1,
+                category: "phenomena",
+                categoryLabel: "Механічні явища",
+                question: "1. Виберіть рядок, у якому наведено тільки механічні явища:",
+                options: [
+                    "а) качка пливе, футболіст б’є по м’ячу, лід тане",
+                    "б) плавець пливе, літак здійснює посадку, ліхтарик світить",
+                    "в) потяг обганяє автомобіль, учень йде до ліцею, Марс обертається",
+                    "г) яблуко падає з дерева, засяяла блискавка, утворюється роса"
+                ],
+                correct: 2, // в
+                explanation: "У варіанті (в) усі явища є механічними, оскільки описують зміну положення тіл у просторі з часом."
+            },
+            {
+                id: 2,
+                category: "phenomena",
+                categoryLabel: "Теплові явища",
+                question: "1. Виберіть рядок, у якому наведено тільки теплові явища:",
+                options: [
+                    "а) світіння лампи, запалювання сірника, згоряння бензину",
+                    "б) нагрівання води, випаровування ефіру, згоряння палива",
+                    "в) полярне сяйво, політ бабки, конденсація води",
+                    "г) кипіння води, охолодження металу, утворення веселки"
+                ],
+                correct: 1, // б
+                explanation: "У варіанті (б) наведені тільки теплові явища (зміна температури та агрегатного стану речовини)."
+            },
+            // Slide 2
+            {
+                id: 3,
+                category: "phenomena",
+                categoryLabel: "Електричні явища",
+                question: "2. Виберіть рядок, у якому наведено тільки електричні явища:",
+                options: [
+                    "а) світить лампа, сяє Сонце, спрацьовує електричне реле",
+                    "б) працює електронагрівник, захищається розрядом електричний скат, заряджається акумулятор",
+                    "в) по провіднику йде електричний струм, їде велосипедист, відбувається землетрус",
+                    "г) тане сніг, коливається маятник, працює електричний двигун"
+                ],
+                correct: 1, // б
+                explanation: "Варіант (б) містить тільки явища, зумовлені виникненням, рухом та дією електричних зарядів."
+            },
+            {
+                id: 4,
+                category: "phenomena",
+                categoryLabel: "Світлові явища",
+                question: "2. Виберіть рядок, у якому наведено тільки світлові явища:",
+                options: [
+                    "а) світить лампа, після дощу з’являється веселка, стрілка компаса вказує на північ",
+                    "б) спалахує блискавка, під час вимикання електричного приладу виникають іскри, гаряча вода остигає",
+                    "в) світає зранку, міраж, світло фар автомобіля",
+                    "г) трамвайні рейки нагрілися, палає вогнище, електричний вентилятор обертається"
+                ],
+                correct: 2, // в
+                explanation: "Рядок (в) описує виключно світлові (оптичні) явища, пов'язані з поширенням та сприйняттям світла."
+            },
+            // Slide 3
+            {
+                id: 5,
+                category: "units",
+                categoryLabel: "Одиниці СІ",
+                question: "3. Вкажіть основну одиницю часу в СІ:",
+                options: [
+                    "а) секунда",
+                    "б) хвилина",
+                    "в) година",
+                    "г) доба"
+                ],
+                correct: 0, // а
+                explanation: "Основною одиницею вимірювання часу в Міжнародній системі одиниць (СІ) є секунда (с)."
+            },
+            {
+                id: 6,
+                category: "units",
+                categoryLabel: "Одиниці СІ",
+                question: "3. Вкажіть одиницю площі в СІ:",
+                options: [
+                    "а) квадратний кілометр",
+                    "б) гектар",
+                    "в) ар",
+                    "г) квадратний метр"
+                ],
+                correct: 3, // г
+                explanation: "Основною одиницею вимірювання площі в СІ є квадратний метр (м²)."
+            },
+            // Slide 4
+            {
+                id: 7,
+                category: "units",
+                categoryLabel: "Фізичне тіло",
+                question: "4. Вкажіть приклад фізичного тіла:",
+                options: [
+                    "а) об’єм",
+                    "б) ніхром",
+                    "в) куля",
+                    "г) кілограм"
+                ],
+                correct: 2, // в
+                explanation: "Куля є фізичним тілом. Об'єм — це величина, ніхром — речовина, а кілограм — одиниця вимірювання."
+            },
+            {
+                id: 8,
+                category: "units",
+                categoryLabel: "Фізична величина",
+                question: "4. Виберіть приклад фізичної величини:",
+                options: [
+                    "а) довжина",
+                    "б) вода",
+                    "в) мензурка",
+                    "г) метр"
+                ],
+                correct: 0, // а
+                explanation: "Довжина — це фізична величина. Вода — речовина, мензурка — вимірювальний прилад, метр — одиниця вимірювання."
+            },
+            // Slide 5
+            {
+                id: 9,
+                category: "matter",
+                categoryLabel: "Будова речовини",
+                question: "5. Об'єм суміші води і спирту менший, ніж сума об'ємів води і спирту до змішування. Вкажіть, чим це пояснюється:",
+                options: [
+                    "а) частинки речовини перебувають у безперервному, хаотичному русі",
+                    "б) частинки речовини можуть змінювати свій розмір",
+                    "в) усі речовини складаються з частинок, між якими є проміжки",
+                    "г) частинки речовини взаємодіють одна з одною"
+                ],
+                correct: 2, // в
+                explanation: "Зменшення загального об'єму пояснюється тим, що молекули однієї речовини займають проміжки між молекулами іншої."
+            },
+            {
+                id: 10,
+                category: "matter",
+                categoryLabel: "Будова речовини",
+                question: "5. Вчителька увійшла в клас. Учень, який сидить на останній парті, відчув запах її парфумів через 10 с. Оберіть, швидкістю якого явища визначається швидкість поширення запаху парфумів в кімнаті:",
+                options: [
+                    "а) швидкістю випаровування",
+                    "б) швидкістю дифузії",
+                    "в) швидкістю броунівського руху",
+                    "г) швидкістю конвекційного перенесення повітря"
+                ],
+                correct: 3, // г
+                explanation: "За 10 секунд молекули парфумів не змогли б подолати відстань класу лише за рахунок дифузії. Головну роль відіграють конвекційні потоки повітря."
+            },
+            // Slide 6
+            {
+                id: 11,
+                category: "matter",
+                categoryLabel: "Будова речовини",
+                question: "6. Чим відрізняються молекули води і водяної пари?",
+                options: [
+                    "а) складом",
+                    "б) вони однакові",
+                    "в) розміром",
+                    "г) складом і розміром"
+                ],
+                correct: 1, // б
+                explanation: "Молекули однієї і тієї ж речовини в усіх агрегатних станах абсолютно однакові (H₂O). Відрізняється лише відстань між ними та характер руху."
+            },
+            {
+                id: 12,
+                category: "matter",
+                categoryLabel: "Будова речовини",
+                question: "6. Оберіть, прикладом якого явища є розчинення прального порошку під час прання в автоматичній пральній машині:",
+                options: [
+                    "а) вимушеної дифузії",
+                    "б) дифузії в газах",
+                    "в) дифузії в рідинах",
+                    "г) дифузії в твердих тілах"
+                ],
+                correct: 0, // а
+                explanation: "Механічне перемішування води в барабані пральної машини прискорює дифузію, тому це явище є вимушеною дифузією."
+            },
+            // Slide 7 & 8
+            {
+                id: 13,
+                category: "measure",
+                categoryLabel: "Переведення одиниць",
+                question: "7. Виразіть 350 см у км:",
+                options: [
+                    "а) 3500 км",
+                    "б) 3,5 км",
+                    "в) 0,035 км",
+                    "г) 0,0035 км"
+                ],
+                correct: 3, // г
+                explanation: "1 м = 100 см, тому 350 см = 3,5 м. Оскільки 1 км = 1000 м, маємо 3,5 / 1000 = 0,0035 км."
+            },
+            {
+                id: 14,
+                category: "measure",
+                categoryLabel: "Переведення одиниць",
+                question: "8. Виразіть 15 хв у год:",
+                options: [
+                    "а) 600 год",
+                    "б) 0,15 год",
+                    "в) 0,25 год",
+                    "г) 0,5 год"
+                ],
+                correct: 2, // в
+                explanation: "1 година містить 60 хвилин. 15 хв / 60 хв = 1/4 год = 0,25 год."
+            },
+            // Slide 9
+            {
+                id: 15,
+                category: "measure",
+                categoryLabel: "Вимірювання",
+                hasGraphic: true,
+                graphicType: "ruler",
+                question: "9. Яка довжина бруска, зображеного на рисунку?",
+                options: [
+                    "а) 10,5 см",
+                    "б) 7,5 см",
+                    "в) 8,5 см",
+                    "г) 3 см"
+                ],
+                correct: 1, // б
+                explanation: "Лівий край бруска розміщений на позначці 3 см, а правий — на 10,5 см. Довжина дорівнює: 10,5 см - 3 см = 7,5 см."
+            },
+            {
+                id: 16,
+                category: "measure",
+                categoryLabel: "Вимірювання",
+                hasGraphic: true,
+                graphicType: "thermometer",
+                question: "9 (2). Визначте ціну поділки термометра і його показання:",
+                options: [
+                    "а) ціна поділки 2 °C, показання 48 °C",
+                    "б) ціна поділки 2 °C, показання 46 °C",
+                    "в) ціна поділки 5 °C, показання 50 °C",
+                    "г) ціна поділки 10 °C, показання 48 °C"
+                ],
+                correct: 0, // а
+                explanation: "Ціна поділки: (20 °C - 0 °C) / 10 = 2 °C. Стовпчик рідини закінчується на 4 поділці після позначки 40 °C, тому показання термометра: 40 °C + 4 · 2 °C = 48 °C."
+            }
+        ];
+
+        // Global State
+        let currentQuestionIdx = 0;
+        let attemptsUsed = 0;
+        let totalScore = 0;
+        let soundEnabled = true;
+        let userStats = [];
+        let activeFilter = 'all';
+
+        // Web Audio Synthesizer
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new AudioContext();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                if (type === 'good') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.07);
+                        
+                        gain.gain.setValueAtTime(0.12, audioCtx.currentTime + idx * 0.07);
+                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.07 + 0.25);
+                        
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        
+                        osc.start(audioCtx.currentTime + idx * 0.07);
+                        osc.stop(audioCtx.currentTime + idx * 0.07 + 0.3);
+                    });
+                } else if (type === 'bad') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(90, audioCtx.currentTime + 0.22);
+                    
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.22);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch (e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (soundEnabled) {
+                icon.className = "fa-solid fa-volume-high text-emerald-400";
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-rose-400";
+            }
+        }
+
+        // Mode Navigation Switcher
+        function switchMode(mode) {
+            const gameView = document.getElementById('gameView');
+            const previewView = document.getElementById('previewView');
+            const modeGameBtn = document.getElementById('modeGameBtn');
+            const modePreviewBtn = document.getElementById('modePreviewBtn');
+
+            if (mode === 'game') {
+                gameView.classList.remove('hidden');
+                previewView.classList.add('hidden');
+                
+                modeGameBtn.className = "px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-2 bg-white text-indigo-900 shadow";
+                modePreviewBtn.className = "px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-2 text-white hover:text-indigo-200";
+            } else {
+                gameView.classList.add('hidden');
+                previewView.classList.remove('hidden');
+
+                modePreviewBtn.className = "px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-2 bg-white text-indigo-900 shadow";
+                modeGameBtn.className = "px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-2 text-white hover:text-indigo-200";
+
+                renderPreviewGrid();
+            }
+        }
+
+        function jumpToQuestion(questionIndex) {
+            currentQuestionIdx = questionIndex;
+            switchMode('game');
+            document.getElementById('resultsCard').classList.add('hidden');
+            document.getElementById('quizCard').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        // SVG Ruler Generator for Measurement Question 15
+        function getRulerSVG() {
+            return `
+            <div class="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-inner flex flex-col items-center select-none">
+                <svg viewBox="0 0 600 130" class="w-full max-w-xl h-auto">
+                    <!-- Background -->
+                    <rect x="10" y="50" width="580" height="70" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" rx="4"/>
+                    
+                    <!-- Orange Wooden Block -->
+                    <rect x="126" y="20" width="290" height="30" fill="#fdba74" stroke="#ea580c" stroke-width="2" rx="2"/>
+                    <text x="271" y="40" fill="#9a3412" font-size="12" font-weight="bold" text-anchor="middle">Брусок</text>
+
+                    <!-- Dotted guidelines -->
+                    <line x1="126" y1="20" x2="126" y2="90" stroke="#ea580c" stroke-dasharray="3,3" stroke-width="1.5"/>
+                    <line x1="416" y1="20" x2="416" y2="90" stroke="#ea580c" stroke-dasharray="3,3" stroke-width="1.5"/>
+
+                    <!-- Ruler Ticks & Labels (0 to 15 cm) -->
+                    ${Array.from({length: 16}).map((_, i) => {
+                        const x = 10 + i * 38;
+                        let ticks = `<line x1="${x}" y1="50" x2="${x}" y2="75" stroke="#334155" stroke-width="2"/>
+                                     <text x="${x}" y="95" fill="#334155" font-size="12" font-weight="bold" text-anchor="middle">${i}</text>`;
+                        if (i < 15) {
+                            for(let j=1; j<10; j++) {
+                                const subX = x + j * 3.8;
+                                const h = (j === 5) ? 65 : 58;
+                                ticks += `<line x1="${subX}" y1="50" x2="${subX}" y2="${h}" stroke="#64748b" stroke-width="1"/>`;
+                            }
+                        }
+                        return ticks;
+                    }).join('')}
+                    
+                    <text x="20" y="112" fill="#64748b" font-size="11" font-weight="bold">см</text>
+                </svg>
+            </div>`;
+        }
+
+        // SVG Thermometer Generator for Question 16
+        function getThermometerSVG() {
+            return `
+            <div class="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-inner flex flex-col items-center select-none">
+                <svg viewBox="0 0 600 160" class="w-full max-w-xl h-auto">
+                    <!-- Outer White Card Frame -->
+                    <rect x="10" y="10" width="580" height="140" fill="#ffffff" stroke="#475569" stroke-width="2" rx="4"/>
+                    
+                    <!-- Glass Tube Outer Contour -->
+                    <rect x="120" y="70" width="430" height="20" fill="#f8fafc" stroke="#334155" stroke-width="2" rx="3"/>
+                    
+                    <!-- Bulb on the left -->
+                    <circle cx="95" cy="80" r="18" fill="#e11d48" stroke="#334155" stroke-width="2"/>
+                    
+                    <!-- Red Fluid Fill (up to 48 °C = 4th tick after 40°C mark) -->
+                    <!-- 0°C is at x=150, 60°C is at x=510. Scale width = 360px for 60 units (6px/°C). 48°C = x=438px -->
+                    <rect x="105" y="74" width="333" height="12" fill="#e11d48"/>
+
+                    <!-- Center vertical dotted axis line -->
+                    <line x1="330" y1="10" x2="330" y2="150" stroke="#94a3b8" stroke-dasharray="3,3" stroke-width="1.5"/>
+
+                    <!-- °C symbol -->
+                    <text x="135" y="45" fill="#0f172a" font-size="16" font-weight="extrabold" text-anchor="middle">°C</text>
+
+                    <!-- Thermometer Scale Ticks and Labels (0, 20, 40, 60 °C with 2°C divisions) -->
+                    ${Array.from({length: 31}).map((_, i) => {
+                        const temp = i * 2;
+                        const x = 150 + temp * 6;
+                        let isMajor = (temp % 20 === 0);
+                        let isMedium = (temp % 10 === 0 && !isMajor);
+
+                        let y1_top = 70;
+                        let y2_top = isMajor ? 50 : (isMedium ? 58 : 62);
+                        
+                        let y1_bot = 90;
+                        let y2_bot = isMajor ? 110 : (isMedium ? 102 : 98);
+
+                        let strokeW = isMajor ? "2" : (isMedium ? "1.5" : "1");
+
+                        let res = `
+                            <line x1="${x}" y1="${y1_top}" x2="${x}" y2="${y2_top}" stroke="#334155" stroke-width="${strokeW}"/>
+                            <line x1="${x}" y1="${y1_bot}" x2="${x}" y2="${y2_bot}" stroke="#334155" stroke-width="${strokeW}"/>
+                        `;
+
+                        if (isMajor) {
+                            res += `<text x="${x}" y="42" fill="#0f172a" font-size="15" font-weight="extrabold" text-anchor="middle">${temp}</text>`;
+                        }
+
+                        return res;
+                    }).join('')}
+                </svg>
+            </div>`;
+        }
+
+        // Quiz Logic
+        function loadQuestion() {
+            const q = questions[currentQuestionIdx];
+            attemptsUsed = 0;
+
+            document.getElementById('questionNumText').innerText = `Запитання ${currentQuestionIdx + 1} з ${questions.length}`;
+            document.getElementById('questionTitle').innerText = q.question;
+            document.getElementById('attemptsLeft').innerText = "1";
+            document.getElementById('attemptsBadge').className = "px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1.5";
+
+            // Graphic injection if required
+            const visualContainer = document.getElementById('questionVisual');
+            if (q.hasGraphic) {
+                if (q.graphicType === 'thermometer') {
+                    visualContainer.innerHTML = getThermometerSVG();
+                } else {
+                    visualContainer.innerHTML = getRulerSVG();
+                }
+                visualContainer.classList.remove('hidden');
+            } else {
+                visualContainer.innerHTML = '';
+                visualContainer.classList.add('hidden');
+            }
+
+            const progressPct = ((currentQuestionIdx) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progressPct}%`;
+
+            const banner = document.getElementById('feedbackBanner');
+            banner.className = "hidden p-4 rounded-2xl mb-6 flex items-start gap-3 transition-all duration-300";
+
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.className = "px-6 py-3 rounded-xl bg-slate-200 text-slate-400 font-bold text-sm transition flex items-center space-x-2 cursor-not-allowed";
+
+            const optionsContainer = document.getElementById('optionsGrid');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `opt-btn-${idx}`;
+                btn.onclick = () => handleAnswer(idx);
+                btn.className = "option-btn w-full text-left p-4 rounded-2xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50/80 font-medium text-slate-700 text-sm md:text-base flex items-start justify-between gap-3 shadow-sm";
+                
+                btn.innerHTML = `
+                    <span class="flex-1">${optText}</span>
+                    <span id="status-icon-${idx}" class="mt-0.5 text-lg"></span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedIndex) {
+            const q = questions[currentQuestionIdx];
+            attemptsUsed++;
+
+            const selectedBtn = document.getElementById(`opt-btn-${selectedIndex}`);
+            const statusIcon = document.getElementById(`status-icon-${selectedIndex}`);
+
+            if (selectedIndex === q.correct) {
+                // Correct
+                playSound('good');
+                selectedBtn.className = "option-btn w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 text-emerald-950 font-bold text-sm md:text-base flex items-start justify-between gap-3 shadow-md";
+                statusIcon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i>`;
+
+                const pointsGained = attemptsUsed === 1 ? 2 : 1;
+                totalScore += pointsGained;
+                document.getElementById('scoreCounter').innerText = totalScore;
+
+                userStats.push({
+                    qIndex: currentQuestionIdx,
+                    success: true,
+                    firstTry: attemptsUsed === 1,
+                    points: pointsGained
+                });
+
+                showBanner(
+                    true,
+                    attemptsUsed === 1 ? "Чудово! Правильна відповідь з першої спроби!" : "Вірно з другої спроби!",
+                    q.explanation
+                );
+
+                disableAllOptions();
+                enableNextButton();
+
+            } else {
+                // Incorrect
+                playSound('bad');
+                selectedBtn.disabled = true;
+                selectedBtn.className = "option-btn w-full text-left p-4 rounded-2xl border border-rose-300 bg-rose-50/70 text-rose-800 font-medium text-sm md:text-base flex items-start justify-between gap-3 opacity-80 cursor-not-allowed";
+                statusIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500"></i>`;
+
+                if (attemptsUsed === 1) {
+                    document.getElementById('attemptsLeft').innerText = "2";
+                    document.getElementById('attemptsBadge').className = "px-3 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1.5 animate-bounce";
+
+                    showBanner(
+                        false,
+                        "Невірно! Залишилася ще 1 спроба",
+                        "Подумайте ще раз та оберіть інший варіант відповіді."
+                    );
+
+                } else {
+                    userStats.push({
+                        qIndex: currentQuestionIdx,
+                        success: false,
+                        firstTry: false,
+                        points: 0
+                    });
+
+                    const correctBtn = document.getElementById(`opt-btn-${q.correct}`);
+                    correctBtn.className = "option-btn w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 text-emerald-950 font-bold text-sm md:text-base flex items-start justify-between gap-3 shadow-md";
+                    document.getElementById(`status-icon-${q.correct}`).innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i>`;
+
+                    showBanner(
+                        false,
+                        "Спроби вичерпано",
+                        `Правильна відповідь виділена зеленим кольором. ${q.explanation}`
+                    );
+
+                    disableAllOptions();
+                    enableNextButton();
+                }
+            }
+        }
+
+        function showBanner(isSuccess, title, text) {
+            const banner = document.getElementById('feedbackBanner');
+            const icon = document.getElementById('feedbackIcon');
+            const bannerTitle = document.getElementById('feedbackTitle');
+            const bannerText = document.getElementById('feedbackText');
+
+            banner.classList.remove('hidden');
+
+            if (isSuccess) {
+                banner.className = "p-4 rounded-2xl mb-6 flex items-start gap-3 transition-all duration-300 bg-emerald-50 border border-emerald-200 text-emerald-900";
+                icon.innerHTML = `<i class="fa-solid fa-face-smile text-emerald-600"></i>`;
+            } else {
+                banner.className = "p-4 rounded-2xl mb-6 flex items-start gap-3 transition-all duration-300 bg-amber-50 border border-amber-200 text-amber-900";
+                icon.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-600"></i>`;
+            }
+
+            bannerTitle.innerText = title;
+            bannerText.innerText = text;
+        }
+
+        function disableAllOptions() {
+            questions[currentQuestionIdx].options.forEach((_, idx) => {
+                const btn = document.getElementById(`opt-btn-${idx}`);
+                if (btn) btn.disabled = true;
+            });
+        }
+
+        function enableNextButton() {
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = false;
+            nextBtn.className = "px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 hover:opacity-95 transition flex items-center space-x-2 pulse-subtle cursor-pointer";
+        }
+
+        function nextQuestion() {
+            currentQuestionIdx++;
+            if (currentQuestionIdx < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quizCard').classList.add('hidden');
+            const resultsCard = document.getElementById('resultsCard');
+            resultsCard.classList.remove('hidden');
+
+            const correctFirstTryCount = userStats.filter(s => s.firstTry).length;
+
+            document.getElementById('totalQuestionsStat').innerText = questions.length;
+            document.getElementById('correctFirstTryStat').innerText = correctFirstTryCount;
+            document.getElementById('finalScoreStat').innerText = `${totalScore} / ${questions.length * 2}`;
+
+            const listContainer = document.getElementById('resultsList');
+            listContainer.innerHTML = '';
+
+            userStats.forEach((stat, idx) => {
+                const q = questions[stat.qIndex];
+                const item = document.createElement('div');
+                item.className = "p-3 rounded-xl border bg-white flex items-center justify-between text-xs md:text-sm";
+                
+                let badgeHTML = '';
+                if (stat.firstTry) {
+                    badgeHTML = `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 font-semibold">+2 бали (з 1 спроби)</span>`;
+                } else if (stat.success) {
+                    badgeHTML = `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 font-semibold">+1 бал (з 2 спроби)</span>`;
+                } else {
+                    badgeHTML = `<span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 font-semibold">0 балів</span>`;
+                }
+
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2 truncate pr-2">
+                        <span class="font-bold text-slate-400">#${idx + 1}</span>
+                        <span class="text-slate-700 truncate">${q.question}</span>
+                    </div>
+                    <div>${badgeHTML}</div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function restartQuiz() {
+            currentQuestionIdx = 0;
+            totalScore = 0;
+            userStats = [];
+            document.getElementById('scoreCounter').innerText = "0";
+            document.getElementById('resultsCard').classList.add('hidden');
+            document.getElementById('quizCard').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        // Preview Grid Renderer & Filter
+        function filterPreview(category) {
+            activeFilter = category;
+            
+            ['all', 'phenomena', 'units', 'matter', 'measure'].forEach(cat => {
+                const btn = document.getElementById(`filter-${cat}`);
+                if (btn) {
+                    if (cat === category) {
+                        btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-indigo-600 text-white shadow";
+                    } else {
+                        btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200";
+                    }
+                }
+            });
+
+            renderPreviewGrid();
+        }
+
+        function renderPreviewGrid() {
+            const container = document.getElementById('previewGrid');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const filteredQuestions = activeFilter === 'all' 
+                ? questions 
+                : questions.filter(q => q.category === activeFilter);
+
+            filteredQuestions.forEach((q) => {
+                const actualIndex = questions.findIndex(item => item.id === q.id);
+                const card = document.createElement('div');
+                card.className = "p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition";
+
+                let optionsHTML = '';
+                q.options.forEach((opt, idx) => {
+                    const isCorrect = idx === q.correct;
+                    if (isCorrect) {
+                        optionsHTML += `
+                            <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 font-bold text-xs md:text-sm flex items-center justify-between">
+                                <span>${opt}</span>
+                                <span class="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-md font-semibold"><i class="fa-solid fa-check mr-1"></i>Правильно</span>
+                            </div>
+                        `;
+                    } else {
+                        optionsHTML += `
+                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-xs md:text-sm">
+                                ${opt}
+                            </div>
+                        `;
+                    }
+                });
+
+                let graphicHTML = '';
+                if (q.hasGraphic) {
+                    if (q.graphicType === 'thermometer') {
+                        graphicHTML = `<div class="mb-3">${getThermometerSVG()}</div>`;
+                    } else {
+                        graphicHTML = `<div class="mb-3">${getRulerSVG()}</div>`;
+                    }
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3 gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">#${actualIndex + 1}</span>
+                            <span class="px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100 text-xs font-semibold">${q.categoryLabel}</span>
+                        </div>
+                        <button onclick="jumpToQuestion(${actualIndex})" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-lg transition">
+                            <i class="fa-solid fa-play text-[10px]"></i> Грати це питання
+                        </button>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-sm md:text-base mb-3 leading-snug">${q.question}</h3>
+                    ${graphicHTML}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                        ${optionsHTML}
+                    </div>
+                    <div class="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-900 leading-relaxed">
+                        <span class="font-bold">Пояснення:</span> ${q.explanation}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize quiz on window load
+        window.onload = () => {
+            loadQuestion();
+            renderPreviewGrid();
+        };
+    </script>
+</body>
+</html>
