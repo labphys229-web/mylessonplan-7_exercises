@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Інтерактивний тест з фізики - Механічний рух</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap');
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at center, #1a2035 0%, #0a0d18 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* Адаптивний контейнер, що підлаштовується під орієнтацію екрана */
+        .stage-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(20, 27, 47, 0.95);
+            backdrop-filter: blur(12px);
+            touch-action: manipulation;
+        }
+
+        @media (min-width: 640px) {
+            .stage-container {
+                min-height: auto;
+                height: 92vh;
+                max-height: 680px;
+                border: 2px solid #3b82f6;
+                border-radius: 24px;
+                box-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
+                padding: 1.5rem;
+            }
+        }
+
+        /* Кнопки відповідей */
+        .option-btn {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #334155;
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        @media (hover: hover) {
+            .option-btn:hover:not(:disabled) {
+                border-color: #60a5fa;
+                background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+                box-shadow: 0 0 15px rgba(96, 165, 250, 0.4);
+            }
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            border-color: #34d399 !important;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.6) !important;
+            color: #ffffff !important;
+        }
+
+        .option-btn.wrong {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+            border-color: #f87171 !important;
+            box-shadow: 0 0 20px rgba(248, 113, 113, 0.6) !important;
+            color: #ffffff !important;
+        }
+
+        .glow-btn {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(96, 165, 250, 0.9); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stage-container" id="stage">
+        
+        <!-- Екран привітання -->
+        <div id="start-screen" class="h-full flex flex-col justify-between items-center text-center py-2 sm:py-4 my-auto space-y-4">
+            <div class="space-y-2 mt-2">
+                <span class="inline-block px-3 py-1 bg-blue-900/50 border border-blue-400/40 rounded-full text-blue-300 text-xs sm:text-sm font-bold uppercase tracking-widest">
+                    Фізика 7 клас
+                </span>
+                <h1 class="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-300 leading-tight">
+                    МЕХАНІЧНИЙ РУХ
+                </h1>
+                <p class="text-xs sm:text-base text-gray-300 font-semibold">Інтерактивна гра-тест</p>
+            </div>
+
+            <div class="bg-slate-800/80 p-4 sm:p-6 rounded-2xl border border-slate-700/80 w-full max-w-lg shadow-inner text-left text-xs sm:text-sm leading-relaxed space-y-2">
+                <p class="font-bold text-center text-blue-300 text-sm sm:text-base mb-2">💡 Правила гри:</p>
+                <p>❓ Дайте відповідь на <strong>10 питань</strong>.</p>
+                <p>⏱️ На кожне питання надається <strong>10 секунд</strong>.</p>
+                <p>📱 Зручно грати як з телефона, так і з комп'ютера.</p>
+                <p>🔊 Рекомендуємо увімкнути звук на пристрої.</p>
+            </div>
+
+            <button onclick="startGame()" class="glow-btn w-full max-w-xs bg-gradient-to-r from-blue-600 to-indigo-600 active:from-blue-700 active:to-indigo-700 text-white font-black py-3.5 sm:py-4 rounded-xl text-lg sm:text-xl transition-transform active:scale-95 cursor-pointer shadow-lg my-2">
+                ПОЧАТИ ГРУ 🚀
+            </button>
+        </div>
+
+        <!-- Ігровий екран -->
+        <div id="game-screen" class="h-full flex flex-col justify-between hidden space-y-3">
+            <!-- Верхня панель (Статус і Таймер) -->
+            <div class="flex items-center justify-between bg-slate-900/90 px-3 py-2 rounded-xl border border-slate-800 gap-2">
+                <div class="text-blue-400 font-bold text-xs sm:text-sm whitespace-nowrap" id="question-number">
+                    1/10
+                </div>
+                
+                <!-- Таймер -->
+                <div id="timer-container" class="flex items-center space-x-1 sm:space-x-2 bg-slate-800 px-3 py-1 rounded-lg border border-amber-500/50 text-amber-400 font-black text-sm sm:text-base">
+                    <span>⏱️</span>
+                    <span id="timer-display" class="w-6 text-center">10</span>с
+                </div>
+
+                <!-- Бали та Звук -->
+                <div class="flex items-center space-x-2">
+                    <span class="text-emerald-400 font-black text-xs sm:text-sm" id="score-display">Бали: 0</span>
+                    <button id="sound-btn" onclick="toggleSound()" class="bg-slate-800 active:bg-slate-700 px-2 py-1 rounded-lg border border-slate-700 text-xs text-gray-300">
+                        🔊
+                    </button>
+                </div>
+            </div>
+
+            <!-- Прогрес бар -->
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/50">
+                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-0 transition-all duration-300"></div>
+            </div>
+
+            <!-- Блок запитання -->
+            <div class="my-auto py-3 px-3 sm:px-5 bg-slate-900/60 rounded-2xl border border-slate-800 text-center flex items-center justify-center min-h-[100px] sm:min-h-[120px]">
+                <h2 id="question-text" class="text-sm sm:text-xl font-bold text-slate-100 leading-snug">
+                    Завантаження запитання...
+                </h2>
+            </div>
+
+            <!-- Варіанти відповідей (на мобільних — по 1 в рядок або сітка 2x2 на більших екранах) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                <button onclick="selectOption(0)" id="opt-0" class="option-btn rounded-xl p-2.5 sm:p-3 text-left flex items-center space-x-3 cursor-pointer min-h-[52px]">
+                    <span class="bg-blue-600/30 border border-blue-400/60 text-blue-300 rounded-lg px-2.5 py-1 font-black text-xs sm:text-sm flex-shrink-0">A</span>
+                    <span id="opt-0-text" class="text-xs sm:text-sm font-semibold leading-tight text-slate-200"></span>
+                </button>
+                <button onclick="selectOption(1)" id="opt-1" class="option-btn rounded-xl p-2.5 sm:p-3 text-left flex items-center space-x-3 cursor-pointer min-h-[52px]">
+                    <span class="bg-blue-600/30 border border-blue-400/60 text-blue-300 rounded-lg px-2.5 py-1 font-black text-xs sm:text-sm flex-shrink-0">B</span>
+                    <span id="opt-1-text" class="text-xs sm:text-sm font-semibold leading-tight text-slate-200"></span>
+                </button>
+                <button onclick="selectOption(2)" id="opt-2" class="option-btn rounded-xl p-2.5 sm:p-3 text-left flex items-center space-x-3 cursor-pointer min-h-[52px]">
+                    <span class="bg-blue-600/30 border border-blue-400/60 text-blue-300 rounded-lg px-2.5 py-1 font-black text-xs sm:text-sm flex-shrink-0">C</span>
+                    <span id="opt-2-text" class="text-xs sm:text-sm font-semibold leading-tight text-slate-200"></span>
+                </button>
+                <button onclick="selectOption(3)" id="opt-3" class="option-btn rounded-xl p-2.5 sm:p-3 text-left flex items-center space-x-3 cursor-pointer min-h-[52px]">
+                    <span class="bg-blue-600/30 border border-blue-400/60 text-blue-300 rounded-lg px-2.5 py-1 font-black text-xs sm:text-sm flex-shrink-0">D</span>
+                    <span id="opt-3-text" class="text-xs sm:text-sm font-semibold leading-tight text-slate-200"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Екран фінішу -->
+        <div id="end-screen" class="h-full flex flex-col justify-between items-center text-center py-4 my-auto hidden space-y-4">
+            <h1 class="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">
+                ТЕСТ ЗАВЕРШЕНО! 🎉
+            </h1>
+
+            <div class="bg-slate-800/90 p-6 sm:p-8 rounded-3xl border border-slate-700 w-full max-w-md my-auto shadow-2xl space-y-3">
+                <p class="text-xs sm:text-sm font-bold text-gray-300 uppercase tracking-wide">Ваш результат:</p>
+                <div class="text-5xl sm:text-6xl font-black text-cyan-400" id="final-score">0 / 10</div>
+                <p class="text-xs sm:text-base font-bold text-yellow-300 pt-2" id="final-message"></p>
+            </div>
+
+            <button onclick="startGame()" class="glow-btn w-full max-w-xs bg-gradient-to-r from-emerald-600 to-teal-600 active:from-emerald-700 active:to-teal-700 text-white font-black py-3.5 sm:py-4 rounded-xl text-lg sm:text-xl transition-transform active:scale-95 cursor-pointer shadow-lg">
+                ПРОЙТИ ЗНОВУ 🔄
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                q: "Що саме у фізиці називають механічним рухом?",
+                options: [
+                    "Зміна із часом положення тіла або частин тіла в просторі відносно інших тіл.",
+                    "Збільшення розмірів тіла внаслідок його нагрівання або хімічної реакції.",
+                    "Будь-яка зміна стану тіла, включаючи зміну його температури.",
+                    "Процес перетворення енергії з одного виду в інший всередині об'єкта."
+                ],
+                correct: 0
+            },
+            {
+                q: "Як називається тіло, відносно якого розглядають положення об'єкта, що рухається?",
+                options: [
+                    "Вимірювальний прилад",
+                    "Матеріальна точка",
+                    "Тіло відліку",
+                    "Система координат"
+                ],
+                correct: 2
+            },
+            {
+                q: "Які елементи входять до складу системи відліку?",
+                options: [
+                    "Тіло відліку та будь-який пристрій для вимірювання маси тіла.",
+                    "Тільки система координат та прилад для вимірювання швидкості.",
+                    "Тіло відліку, пов’язана з ним система координат і годинник.",
+                    "Тіло відліку, матеріальна точка та лінійка."
+                ],
+                correct: 2
+            },
+            {
+                q: "У якому випадку фізичне тіло можна вважати матеріальною точкою?",
+                options: [
+                    "Коли тіло рухається з дуже великою швидкістю.",
+                    "Коли тіло перебуває у стані спокою відносно системи відліку.",
+                    "Коли тіло має дуже малу масу і об'єм.",
+                    "Коли розмірами тіла в умовах даної задачі можна знехтувати."
+                ],
+                correct: 3
+            },
+            {
+                q: "Пасажир їде у вагоні потяга. Відносно якого тіла він перебуває у стані механічного руху?",
+                options: [
+                    "Крісла, на якому він сидить.",
+                    "Стіл у купе того ж вагона.",
+                    "Сусіда, що спить на полиці навпроти.",
+                    "Дерев за вікном потяга."
+                ],
+                correct: 3
+            },
+            {
+                q: "Чому матеріальна точка вважається саме «фізичною моделлю»?",
+                options: [
+                    "Тому що вона використовується тільки в лабораторних експериментах.",
+                    "Тому що вона описує лише ті тіла, які мають форму кулі.",
+                    "Тому що в природі немає тіл без розмірів, але це спрощення для розрахунків.",
+                    "Тому що це найменша частинка речовини."
+                ],
+                correct: 2
+            },
+            {
+                q: "Яка складова системи відліку відповідає за фіксацію часових інтервалів руху?",
+                options: [
+                    "Початок відліку",
+                    "Вісь координат",
+                    "Матеріальна точка",
+                    "Годинник"
+                ],
+                correct: 3
+            },
+            {
+                q: "Досліджуємо політ літака з Києва до Парижа. Чи можна вважати літак матеріальною точкою?",
+                options: [
+                    "Так, тому що літак рухається швидше за автомобіль.",
+                    "Ні, тому що в літаку перебувають люди.",
+                    "Ні, тому що літак має складну форму крил.",
+                    "Так, оскільки розміри літака набагато менші за відстань між містами."
+                ],
+                correct: 3
+            },
+            {
+                q: "Чи є скорочення серця всередині організму людини механічним рухом?",
+                options: [
+                    "Ні, механічний рух стосується тільки неживих предметів.",
+                    "Ні, це виключно біологічний процес.",
+                    "Так, але тільки якщо людина біжить.",
+                    "Так, оскільки частини серця змінюють своє положення відносно інших частин."
+                ],
+                correct: 3
+            },
+            {
+                q: "Що є необхідною умовою для того, щоб стверджувати, що тіло рухається?",
+                options: [
+                    "Тіло обов'язково повинно мати велику швидкість.",
+                    "Наявність тіла відліку, відносно якого змінюється положення.",
+                    "Тіло має обов'язково видавати звук.",
+                    "Потрібно, щоб на тіло діяла сила тяжіння."
+                ],
+                correct: 1
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let canClick = true;
+        let soundEnabled = true;
+
+        let timerInterval = null;
+        let timeLeft = 10;
+        let audioCtx = null;
+
+        // Ініціалізація аудіо з урахуванням обмежень мобільних браузерів
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Додаємо слухач першого дотику для підготовки аудіо на iOS/Android
+        document.addEventListener('touchstart', function unlockAudio() {
+            initAudio();
+            document.removeEventListener('touchstart', unlockAudio);
+        }, { once: true });
+
+        function playNote(freq, type = 'sine', duration = 0.25) {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function playAnswerSound(isCorrect) {
+            initAudio();
+            if (isCorrect) {
+                playNote(523.25, 'triangle', 0.12);
+                setTimeout(() => playNote(659.25, 'triangle', 0.12), 70);
+                setTimeout(() => playNote(783.99, 'triangle', 0.25), 140);
+            } else {
+                playNote(220, 'sawtooth', 0.15);
+                setTimeout(() => playNote(174.61, 'sawtooth', 0.25), 100);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-btn');
+            btn.innerText = soundEnabled ? "🔊" : "🔇";
+            btn.classList.toggle('opacity-50', !soundEnabled);
+        }
+
+        function startGame() {
+            initAudio();
+            currentQuestion = 0;
+            score = 0;
+            canClick = true;
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            canClick = true;
+            const qData = quizData[currentQuestion];
+            
+            document.getElementById('question-number').innerText = `Питання ${currentQuestion + 1}/${quizData.length}`;
+            document.getElementById('score-display').innerText = `Бали: ${score}`;
+            document.getElementById('question-text').innerText = qData.q;
+
+            const progressPct = ((currentQuestion + 1) / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPct}%`;
+
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`opt-${i}`);
+                const textSpan = document.getElementById(`opt-${i}-text`);
+                
+                btn.className = "option-btn rounded-xl p-2.5 sm:p-3 text-left flex items-center space-x-3 cursor-pointer min-h-[52px]";
+                btn.disabled = false;
+                textSpan.innerText = qData.options[i];
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 10;
+            updateTimerUI();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+
+                if (timeLeft <= 3 && timeLeft > 0) {
+                    playNote(587.33, 'sine', 0.08); // Сигнал попередження
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const timerDisplay = document.getElementById('timer-display');
+            const timerContainer = document.getElementById('timer-container');
+
+            timerDisplay.innerText = timeLeft;
+
+            if (timeLeft <= 3) {
+                timerContainer.className = "flex items-center space-x-1 sm:space-x-2 bg-red-900/90 px-3 py-1 rounded-lg border border-red-500 animate-pulse text-red-300 font-black text-sm sm:text-base";
+            } else {
+                timerContainer.className = "flex items-center space-x-1 sm:space-x-2 bg-slate-800 px-3 py-1 rounded-lg border border-amber-500/50 text-amber-400 font-black text-sm sm:text-base";
+            }
+        }
+
+        function handleTimeout() {
+            if (!canClick) return;
+            canClick = false;
+
+            const qData = quizData[currentQuestion];
+            playAnswerSound(false);
+
+            document.getElementById(`opt-${qData.correct}`).classList.add('correct');
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 1300);
+        }
+
+        function selectOption(index) {
+            if (!canClick) return;
+            canClick = false;
+            clearInterval(timerInterval);
+
+            const qData = quizData[currentQuestion];
+            const isCorrect = (index === qData.correct);
+
+            playAnswerSound(isCorrect);
+
+            const selectedBtn = document.getElementById(`opt-${index}`);
+            if (isCorrect) {
+                score++;
+                selectedBtn.classList.add('correct');
+            } else {
+                selectedBtn.classList.add('wrong');
+                document.getElementById(`opt-${qData.correct}`).classList.add('correct');
+            }
+
+            document.getElementById('score-display').innerText = `Бали: ${score}`;
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 1300);
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+
+            document.getElementById('final-score').innerText = `${score} / ${quizData.length}`;
+            
+            const messageEl = document.getElementById('final-message');
+            if (score === 10) {
+                messageEl.innerText = "Блискавично! Ви знаєте фізику досконало! 🏆⚡";
+            } else if (score >= 7) {
+                messageEl.innerText = "Чудовий результат! Хороші знання та швидка реакція! 👍";
+            } else if (score >= 5) {
+                messageEl.innerText = "Непогано, але можна покращити результат. 📖";
+            } else {
+                messageEl.innerText = "Спробуйте ще раз! З кожною спробою швидкість зростає. 💪";
+            }
+        }
+    </script>
+</body>
+</html>
