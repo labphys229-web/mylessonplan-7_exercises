@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фізика 7 клас | § 6. Механічний рух. Відносність руху та спокою</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax Config for rendering physical formulas and LaTeX notations -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <span class="bg-indigo-500 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">Фізика 7 клас</span>
+                <h1 class="text-2xl font-bold mt-1">§ 6. Механічний рух. Відносність руху та спокою</h1>
+                <p class="text-indigo-200 text-sm">Інтерактивний тренажер для перевірки знань та розв’язування задач</p>
+            </div>
+            <div class="flex items-center gap-2 bg-indigo-800/60 p-2 rounded-xl text-xs font-medium">
+                <span class="w-3 h-3 bg-emerald-400 rounded-full animate-ping"></span>
+                <span>Готово до інтерактивного навчання</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 flex overflow-x-auto space-x-1 sm:space-x-4 py-2" id="tab-buttons">
+            <button onclick="switchTab('flashcards')" id="btn-flashcards" class="tab-btn px-4 py-2.5 rounded-lg font-medium text-sm transition-all bg-indigo-50 text-indigo-700 flex items-center gap-2 shrink-0">
+                <span>🎴</span> Контрольні запитання
+            </button>
+            <button onclick="switchTab('quiz')" id="btn-quiz" class="tab-btn px-4 py-2.5 rounded-lg font-medium text-sm transition-all text-slate-600 hover:bg-slate-100 flex items-center gap-2 shrink-0">
+                <span>📝</span> Інтерактивний тест
+            </button>
+            <button onclick="switchTab('coordinates')" id="btn-coordinates" class="tab-btn px-4 py-2.5 rounded-lg font-medium text-sm transition-all text-slate-600 hover:bg-slate-100 flex items-center gap-2 shrink-0">
+                <span>📏</span> Тренажер координат (Вправа 5)
+            </button>
+            <button onclick="switchTab('scenarios')" id="btn-scenarios" class="tab-btn px-4 py-2.5 rounded-lg font-medium text-sm transition-all text-slate-600 hover:bg-slate-100 flex items-center gap-2 shrink-0">
+                <span>✈️</span> Ситуаційні кейси
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+
+        <!-- TAB 1: FLASHCARDS -->
+        <section id="tab-content-flashcards" class="tab-content">
+            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Картки для перевірки теоретичних знань</h2>
+                    <p class="text-slate-500 text-sm">Натисніть на картку, щоб дізнатися правильну відповідь відповідно до підручника</p>
+                </div>
+                <div class="text-xs font-semibold text-slate-400">Всього запитань: 6</div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="flashcards-container">
+                <!-- Dynamic cards injected via JS -->
+            </div>
+        </section>
+
+        <!-- TAB 2: INTERACTIVE QUIZ -->
+        <section id="tab-content-quiz" class="tab-content hidden">
+            <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                <div id="quiz-header" class="mb-6 pb-4 border-b border-slate-100 flex justify-between items-center">
+                    <div>
+                        <span id="quiz-progress-text" class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Запитання 1 з 8</span>
+                        <h2 class="text-lg font-bold text-slate-900 mt-0.5">Перевірка засвоєння матеріалу § 6</h2>
+                    </div>
+                    <div class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold" id="score-display">
+                        Бали: 0
+                    </div>
+                </div>
+
+                <div id="quiz-body">
+                    <!-- Dynamic Quiz Content -->
+                </div>
+
+                <div id="quiz-result" class="hidden text-center py-8">
+                    <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-3xl font-bold mb-4" id="result-icon">
+                        🏆
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Тестування завершено!</h3>
+                    <p class="text-slate-600 mb-6" id="result-text"></p>
+                    <button onclick="restartQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl transition">
+                        Пройти тест знову
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: COORDINATES SIMULATION -->
+        <section id="tab-content-coordinates" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                <div class="max-w-3xl mb-6">
+                    <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full">Практична задача № 5</span>
+                    <h2 class="text-xl font-bold text-slate-900 mt-2">Визначення відстаней на координатній осі</h2>
+                    <p class="text-slate-600 text-sm mt-1">
+                        Координати дерева, каменя та світлофора, розташованих на узбіччі прямолінійної ділянки дороги: 
+                        <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded font-semibold text-indigo-600">$x_{Д} = -1$ км</span>, 
+                        <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded font-semibold text-emerald-600">$x_{К} = 2$ км</span>, 
+                        <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded font-semibold text-amber-600">$x_{С} = 3.5$ км</span>.
+                    </p>
+                </div>
+
+                <!-- Visual Coordinate Line Axis -->
+                <div class="my-8 p-6 bg-slate-50 rounded-xl border border-slate-200 overflow-x-auto">
+                    <div class="min-w-[600px] relative py-12">
+                        <!-- Axis Line -->
+                        <div class="h-1 bg-slate-400 w-full absolute top-1/2 -translate-y-1/2"></div>
+                        <!-- Arrow -->
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 border-t-8 border-b-8 border-l-[12px] border-t-transparent border-b-transparent border-l-slate-600"></div>
+                        <div class="absolute right-0 top-1/2 translate-y-3 text-xs font-bold text-slate-600">X, км</div>
+
+                        <!-- Ticks & Objects -->
+                        <!-- Origin 0 -->
+                        <div class="absolute left-[25%] top-1/2 -translate-y-1/2 flex flex-col items-center">
+                            <div class="w-0.5 h-4 bg-slate-600"></div>
+                            <span class="text-xs font-bold text-slate-500 mt-2">0</span>
+                        </div>
+
+                        <!-- Дерево (-1 км) -->
+                        <div class="absolute left-[10%] top-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer">
+                            <div class="absolute -top-12 bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded shadow flex items-center gap-1">
+                                🌳 Дерево (Д)
+                            </div>
+                            <div class="w-4 h-4 bg-indigo-600 rounded-full border-2 border-white shadow"></div>
+                            <span class="text-xs font-bold text-indigo-700 mt-2">-1 км</span>
+                        </div>
+
+                        <!-- Камінь (2 км) -->
+                        <div class="absolute left-[55%] top-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer">
+                            <div class="absolute -top-12 bg-emerald-600 text-white text-xs font-bold px-2 py-1 rounded shadow flex items-center gap-1">
+                                🪨 Камінь (К)
+                            </div>
+                            <div class="w-4 h-4 bg-emerald-600 rounded-full border-2 border-white shadow"></div>
+                            <span class="text-xs font-bold text-emerald-700 mt-2">+2 км</span>
+                        </div>
+
+                        <!-- Світлофор (3.5 км) -->
+                        <div class="absolute left-[77.5%] top-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer">
+                            <div class="absolute -top-12 bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded shadow flex items-center gap-1">
+                                🚦 Світлофор (С)
+                            </div>
+                            <div class="w-4 h-4 bg-amber-600 rounded-full border-2 border-white shadow"></div>
+                            <span class="text-xs font-bold text-amber-700 mt-2">+3.5 км</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculator & Questions -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl border border-slate-200 bg-white">
+                        <label class="block text-xs font-bold text-slate-500 uppercase">Відстань Дерево – Камінь ($s_{\text{ДК}}$)</label>
+                        <div class="mt-2 flex items-center gap-2">
+                            <input type="number" step="0.1" id="input-dk" placeholder="?" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 font-bold">
+                            <span class="text-sm text-slate-500">км</span>
+                        </div>
+                        <button onclick="checkDistance('dk', 3, 's_{\\text{ДК}} = |x_{\\text{К}} - x_{\\text{Д}}| = |2 - (-1)| = 3')" class="mt-3 w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-2 rounded-lg transition">Перевірити</button>
+                        <p id="msg-dk" class="text-xs mt-2 font-medium hidden"></p>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-slate-200 bg-white">
+                        <label class="block text-xs font-bold text-slate-500 uppercase">Відстань Камінь – Світлофор ($s_{\text{КС}}$)</label>
+                        <div class="mt-2 flex items-center gap-2">
+                            <input type="number" step="0.1" id="input-kc" placeholder="?" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 font-bold">
+                            <span class="text-sm text-slate-500">км</span>
+                        </div>
+                        <button onclick="checkDistance('kc', 1.5, 's_{\\text{КС}} = |x_{\\text{С}} - x_{\\text{К}}| = |3.5 - 2| = 1.5')" class="mt-3 w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-2 rounded-lg transition">Перевірити</button>
+                        <p id="msg-kc" class="text-xs mt-2 font-medium hidden"></p>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-slate-200 bg-white">
+                        <label class="block text-xs font-bold text-slate-500 uppercase">Відстань Дерево – Світлофор ($s_{\text{ДС}}$)</label>
+                        <div class="mt-2 flex items-center gap-2">
+                            <input type="number" step="0.1" id="input-dc" placeholder="?" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 font-bold">
+                            <span class="text-sm text-slate-500">км</span>
+                        </div>
+                        <button onclick="checkDistance('dc', 4.5, 's_{\\text{ДС}} = |x_{\\text{С}} - x_{\\text{Д}}| = |3.5 - (-1)| = 4.5')" class="mt-3 w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-2 rounded-lg transition">Перевірити</button>
+                        <p id="msg-dc" class="text-xs mt-2 font-medium hidden"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: CASE STUDIES -->
+        <section id="tab-content-scenarios" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Case 1: Pilot & Bullet -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-2xl">🎯</span>
+                            <h3 class="font-bold text-slate-900 text-lg">Випадок з пілотом і кулею</h3>
+                        </div>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                            Під час Першої світової війни пілот на висоті $2\text{ км}$ спіймав руками кулю, що летіла біля його обличчя. Чому це стало можливим?
+                        </p>
+                        <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-lg text-xs text-amber-900 mb-4">
+                            <strong>Пояснення:</strong> Літак і куля рухалися в одному напрямку з майже однаковою швидкістю ($v_{\text{літака}} \approx v_{\text{кулі}}$). Відносно пілота куля перебувала майже в стані спокою ($v_{\text{відн}} = |v_{\text{літака}} - v_{\text{кулі}}| \approx 0$).
+                        </div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs text-slate-400 font-medium">Ключова концепція</span>
+                        <span class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1 rounded-full">Відносна швидкість $v_{\text{відн}} = 0$</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: CASE STUDIES -->
+        <section id="tab-content-scenarios" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Case 1: Pilot & Bullet -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-2xl">🎯</span>
+                            <h3 class="font-bold text-slate-900 text-lg">Випадок з пілотом і кулею</h3>
+                        </div>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                            Під час Першої світової війни пілот на висоті 2 км спіймав руками кулю, що летіла біля його обличчя. Чому це стало можливим?
+                        </p>
+                        <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-lg text-xs text-amber-900 mb-4">
+                            <strong>Пояснення:</strong> Літак і куля рухалися в одному напрямку з майже однаковою швидкістю. Відносно пілота куля перебувала майже в стані спокою (її відносна швидкість дорівнювала нулю).
+                        </div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs text-slate-400 font-medium">Ключова концепція</span>
+                        <span class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1 rounded-full">Відносна швидкість v = 0</span>
+                    </div>
+                </div>
+
+                <!-- Case 2: Airplane Refueling -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-2xl">✈️</span>
+                            <h3 class="font-bold text-slate-900 text-lg">Заправка літаків у повітрі</h3>
+                        </div>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                            Як вдається здійснювати перекачування пального з літака-заправника у винищувач прямо під час польоту на високій швидкості?
+                        </p>
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-r-lg text-xs text-blue-900 mb-4">
+                            <strong>Пояснення:</strong> Літак-заправник і винищувач летять паралельним курсом з однаковою швидкістю. Один відносно одного вони перебувають у стані спокою.
+                        </div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs text-slate-400 font-medium">Ключова концепція</span>
+                        <span class="text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full">Спокій відносно один одного</span>
+                    </div>
+                </div>
+
+                <!-- Case 3: Spacecraft Material Point -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-2xl">🚀</span>
+                            <h3 class="font-bold text-slate-900 text-lg">Космічний корабель як матеріальна точка</h3>
+                        </div>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                            Коли космічний корабель можна вважати матеріальною точкою, а коли — ні?
+                        </p>
+                        <ul class="text-xs text-slate-600 space-y-2 mb-4">
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-emerald-500 font-bold">✓</span>
+                                <span><strong>Переліт Земля – Марс:</strong> Можна вважати М.Т., оскільки відстань перельоту (мільйони км) набагато більша за розміри корабля.</span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-rose-500 font-bold">✗</span>
+                                <span><strong>Посадка на Марс:</strong> Не можна вважати М.Т., бо важливо враховувати розміри, орієнтацію та точне торкання опорами поверхні.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs text-slate-400 font-medium">Фізична модель</span>
+                        <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full">Умови конкретної задачі</span>
+                    </div>
+                </div>
+
+                <!-- Case 4: Train & Platform Illusion -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-2xl">🚆</span>
+                            <h3 class="font-bold text-slate-900 text-lg">Ілюзія руху потяга</h3>
+                        </div>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                            Ви сидите у вагоні потяга й дивитеся на сусідній потяг. Раптом здається, що ваш потяг рушив. Як перевірити, чи це так?
+                        </p>
+                        <div class="bg-purple-50 border-l-4 border-purple-400 p-3 rounded-r-lg text-xs text-purple-900 mb-4">
+                            <strong>Пояснення:</strong> Необхідно подивитися на нерухоме тіло відліку (перон, будівлю станції або дерево). Якщо положення відносно них не змінюється — ваш потяг стоїть.
+                        </div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs text-slate-400 font-medium">Вибір тіла відліку</span>
+                        <span class="text-xs bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full">Нерухоме тіло відліку</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-6xl mx-auto px-4">
+            Розроблено для інтерактивної перевірки знань учнів за підручником Фізика 7 клас (§ 6)
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Data for Flashcards
+        const flashcardsData = [
+            {
+                number: 1,
+                question: "Дайте означення механічного руху. Наведіть приклади.",
+                answer: "Механічний рух — це зміна із часом положення тіла або частин тіла в просторі відносно інших тіл.\nПриклади: обертання Землі навколо Сонця, рух автомобіля по дорозі, рух мікробів у краплі води."
+            },
+            {
+                number: 2,
+                question: "Що таке тіло відліку?",
+                answer: "Тіло відліку — це тіло, відносно якого розглядають положення рухомого тіла. Ним може бути будь-яке тіло, обране з міркувань зручності (дерево, перон, Сонце тощо)."
+            },
+            {
+                number: 3,
+                question: "Як задають систему координат?",
+                answer: "Систему координат задають за допомогою однієї, двох або трьох координатних осей, пов'язаних із тілом відліку; уздовж осей відкладають відстані в обраному масштабі (наприклад, у метрах чи кілометрах)."
+            },
+            {
+                number: 4,
+                question: "Які об'єкти утворюють систему відліку?",
+                answer: "Систему відліку утворюють:\n1) Тіло відліку;\n2) Пов'язана з ним система координат;\n3) Прилад для відліку часу (годинник)."
+            },
+            {
+                number: 5,
+                question: "У яких випадках тіло можна розглядати як матеріальну точку?",
+                answer: "Тіло можна розглядати як матеріальну точку (фізичну модель), коли його розмірами в умовах даної задачі можна знехтувати (наприклад, коли відстані, які долає тіло, набагато більші за його власні розміри)."
+            },
+            {
+                number: 6,
+                question: "Як ви розумієте вираз «механічний рух є відносним»?",
+                answer: "Вираз означає, що стан руху і стан спокою залежать від вибору тіла відліку. Одне й те саме тіло може одночасно рухатися відносно одного тіла відліку і перебувати у стані спокою відносно іншого."
+            }
+        ];
+
+        // Data for Quiz
+        const quizData = [
+            {
+                question: "Що таке механічний рух?",
+                options: [
+                    "Будь-яка зміна температури чи стану тіла з часом",
+                    "Зміна із часом положення тіла або частин тіла в просторі відносно інших тіл",
+                    "Швидке переміщення тіла тільки по прямолінійній траєкторії",
+                    "Збільшення маси або об'єму тіла протягом певного часу"
+                ],
+                correct: 1,
+                explanation: "За означенням з § 6, механічний рух — це зміна із часом положення тіла або частин тіла в просторі відносно інших тіл."
+            },
+            {
+                question: "Які ТРИ компоненти утворюють систему відліку?",
+                options: [
+                    "Тіло відліку, термометр та лінійка",
+                    "Тіло відліку, система координат та прилад для відліку часу",
+                    "Автомобіль, дорога та швидкісний спідометр",
+                    "Матеріальна точка, траєкторія та пройдений шлях"
+                ],
+                correct: 1,
+                explanation: "Система відліку складається з тіла відліку, пов'язаної з ним системи координат і приладу для відліку часу (годинника)."
+            },
+            {
+                question: "Матеріальна точка — це:",
+                options: [
+                    "Тіло найменшої маси у Всесвіті",
+                    "Будь-яка точка, що не має маси і не рухається",
+                    "Фізична модель тіла, розмірами якого в умовах даної задачі можна знехтувати",
+                    "Точка, в якій зупинився механічний рух"
+                ],
+                correct: 2,
+                explanation: "Матеріальна точка — це спрощена фізична модель тіла, розмірами якого можна знехтувати, коли вони набагато менші за пройдену відстань."
+            },
+            {
+                question: "Шматок пінопласту нерухомо плаває на поверхні річки, що тече. Відносно якого тіла пінопласт перебуває у стані СПОКОЮ?",
+                options: [
+                    "Відносно берега річки",
+                    "Відносно води у річці",
+                    "Відносно дерева на узбіччі",
+                    "Відносно моста через річку"
+                ],
+                correct: 1,
+                explanation: "Оскільки пінопласт рухається разом із течією води з однаковою швидкістю, відносно самої води його положення не змінюється (стан спокою)."
+            },
+            {
+                question: "Коли космічний корабель МОЖНА вважати матеріальною точкою?",
+                options: [
+                    "Під час здійснення перельоту з Землі на Марс",
+                    "Під час стикування з орбітальною станцією",
+                    "Під час здійснення посадки на поверхню Марса",
+                    "Коли інженери вимірюють його геометричні параметри"
+                ],
+                correct: 0,
+                explanation: "Під час тривалого перельоту між планетами відстань у мільйони кілометрів набагато більша за розмір корабля, тому його розмірами можна знехтувати."
+            },
+            {
+                question: "Скільки координат достатньо задати для визначення положення футболіста на полі?",
+                options: [
+                    "Одну координату (x)",
+                    "Дві координати (x, y)",
+                    "Три координати (x, y, z)",
+                    "Жодної координати"
+                ],
+                correct: 1,
+                explanation: "Футбольне поле є площиною, тому положення будь-якого гравця задають двовимірною системою координат (x, y)."
+            },
+            {
+                question: "Чому пілот під час польоту зміг спіймати кулю руками?",
+                options: [
+                    "Куля мала дуже велику масу",
+                    "Пілот мав надлюдську реакцію",
+                    "Куля та літак рухалися в одному напрямку з майже однаковою швидкістю",
+                    "Куля рухалася з протилежного напрямку"
+                ],
+                correct: 2,
+                explanation: "Якщо швидкості й напрямки руху літака та кулі збігалися, відносно пілота куля перебувала майже у стані спокою."
+            },
+            {
+                question: "Якщо пасажир сидить у вагоні рухомого потяга, відносно якого тіла він перебуває в РУСІ?",
+                options: [
+                    "Відносно столика у своєму вагоні",
+                    "Відносно сусіднього пасажира, що сидить поруч",
+                    "Відносно перону залізничної станції",
+                    "Відносно підлоги вагона"
+                ],
+                correct: 2,
+                explanation: "Потяг змінює своє положення відносно перону станції з плином часу, тому пасажир рухається відносно перону."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        // Render Flashcards
+        function renderFlashcards() {
+            const container = document.getElementById('flashcards-container');
+            container.innerHTML = flashcardsData.map(card => `
+                <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard(this)">
+                    <div class="card-inner relative w-full h-full duration-500 transform-style-3d shadow-md rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <!-- Front -->
+                        <div class="absolute inset-0 w-full h-full bg-white rounded-2xl p-6 flex flex-col justify-between backface-hidden">
+                            <div>
+                                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">Запитання № ${card.number}</span>
+                                <h3 class="font-bold text-slate-800 text-base mt-3 leading-snug">${card.question}</h3>
+                            </div>
+                            <div class="text-xs text-slate-400 font-medium flex items-center gap-1">
+                                <span>🔄 Натисніть, щоб переглянути відповідь</span>
+                            </div>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-0 w-full h-full bg-indigo-600 text-white rounded-2xl p-6 flex flex-col justify-between backface-hidden rotate-y-180">
+                            <div>
+                                <span class="text-xs font-bold text-indigo-200 uppercase tracking-wider">Відповідь</span>
+                                <p class="text-sm mt-2 whitespace-pre-line leading-relaxed font-normal text-indigo-50">${card.answer}</p>
+                            </div>
+                            <div class="text-xs text-indigo-200 flex items-center gap-1">
+                                <span>🔄 Перевернути назад</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function flipCard(cardEl) {
+            const inner = cardEl.querySelector('.card-inner');
+            inner.classList.toggle('rotate-y-180');
+        }
+
+        // Render Quiz
+        function renderQuizQuestion() {
+            const q = quizData[currentQuestion];
+            document.getElementById('quiz-progress-text').innerText = `Запитання ${currentQuestion + 1} з ${quizData.length}`;
+            document.getElementById('score-display').innerText = `Бали: ${score}`;
+
+            const quizBody = document.getElementById('quiz-body');
+            quizBody.innerHTML = `
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-4">${q.question}</h3>
+                <div class="space-y-2.5 mb-6">
+                    ${q.options.map((opt, idx) => `
+                        <button onclick="selectOption(${idx})" id="opt-${idx}" class="opt-btn w-full text-left p-3.5 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition flex items-center justify-between text-sm text-slate-700 font-medium">
+                            <span>${opt}</span>
+                            <span class="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center text-xs text-slate-400 font-bold shrink-0 ml-2">${String.fromCharCode(65 + idx)}</span>
+                        </button>
+                    `).join('')}
+                </div>
+                <div id="explanation-box" class="hidden p-4 rounded-xl text-xs sm:text-sm leading-relaxed mb-6"></div>
+                <div class="flex justify-end">
+                    <button id="next-btn" onclick="nextQuestion()" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-xl text-sm transition">
+                        ${currentQuestion < quizData.length - 1 ? 'Наступне запитання →' : 'Завершити тест'}
+                    </button>
+                </div>
+            `;
+
+            // Trigger MathJax typeset for newly injected HTML
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([quizBody]);
+            }
+        }
+
+        function selectOption(index) {
+            const q = quizData[currentQuestion];
+            const buttons = document.querySelectorAll('.opt-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const expBox = document.getElementById('explanation-box');
+            expBox.classList.remove('hidden');
+
+            if (index === q.correct) {
+                score += 1;
+                document.getElementById(`opt-${index}`).classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+                expBox.className = 'p-4 rounded-xl text-xs sm:text-sm leading-relaxed mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800';
+                expBox.innerHTML = `<strong>Правильно!</strong> ${q.explanation}`;
+            } else {
+                document.getElementById(`opt-${index}`).classList.add('bg-rose-100', 'border-rose-500', 'text-rose-900');
+                document.getElementById(`opt-${q.correct}`).classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+                expBox.className = 'p-4 rounded-xl text-xs sm:text-sm leading-relaxed mb-6 bg-rose-50 border border-rose-200 text-rose-800';
+                expBox.innerHTML = `<strong>Невірно.</strong> ${q.explanation}`;
+            }
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([expBox]);
+            }
+
+            document.getElementById('score-display').innerText = `Бали: ${score}`;
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                renderQuizQuestion();
+            } else {
+                showQuizResults();
+            }
+        }
+
+        function showQuizResults() {
+            document.getElementById('quiz-body').classList.add('hidden');
+            document.getElementById('quiz-header').classList.add('hidden');
+            const resBox = document.getElementById('quiz-result');
+            resBox.classList.remove('hidden');
+
+            const percent = Math.round((score / quizData.length) * 100);
+            document.getElementById('result-text').innerText = `Ви відповіли правильно на ${score} з ${quizData.length} запитань (${percent}%).`;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('quiz-header').classList.remove('hidden');
+            document.getElementById('quiz-body').classList.remove('hidden');
+            renderQuizQuestion();
+        }
+
+        // Distance Check for Coordinate Exercise with Formula Formatting
+        function checkDistance(type, correctVal, formulaStr) {
+            const input = document.getElementById(`input-${type}`);
+            const msg = document.getElementById(`msg-${type}`);
+            const val = parseFloat(input.value);
+
+            msg.classList.remove('hidden');
+            if (val === correctVal) {
+                msg.innerHTML = `Правильно! $${formulaStr}\\text{ км}$`;
+                msg.className = 'text-xs mt-2 font-bold text-emerald-600';
+            } else {
+                msg.innerHTML = `Невірно. Правильно: $${formulaStr}\\text{ км}$`;
+                msg.className = 'text-xs mt-2 font-bold text-rose-600';
+            }
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([msg]);
+            }
+        }
+
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-50', 'text-indigo-700');
+                btn.classList.add('text-slate-600');
+            });
+
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.add('bg-indigo-50', 'text-indigo-700');
+            activeBtn.classList.remove('text-slate-600');
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        // Init
+        window.addEventListener('DOMContentLoaded', () => {
+            renderFlashcards();
+            renderQuizQuestion();
+        });
+    </script>
+</body>
+</html>
