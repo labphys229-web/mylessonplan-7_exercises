@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="uk" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Траєкторія руху. Шлях. Переміщення - Інтерактивні картки</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX CDN for formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Card glowing subtle effects */
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 h-full flex flex-col font-sans select-none overflow-x-hidden">
+
+    <!-- HEADER / NAVIGATION BAR -->
+    <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700 sticky top-0 z-30 px-4 py-3 shadow-md">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid me-1 fa-atom text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold text-white leading-tight">Фізика 7 клас</h1>
+                    <p class="text-xs text-indigo-300 font-medium">Траєкторія руху. Шлях. Переміщення</p>
+                </div>
+            </div>
+
+            <!-- MODE SWITCHER -->
+            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700/80 text-xs sm:text-sm">
+                <button id="modeCarouselBtn" onclick="switchMode('carousel')" 
+                    class="px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center space-x-1.5 text-white bg-indigo-600 shadow">
+                    <i class="fa-solid fa-clone"></i>
+                    <span class="hidden sm:inline">Огляд</span>
+                </button>
+                <button id="modeTestBtn" onclick="switchMode('test')" 
+                    class="px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center space-x-1.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-brain"></i>
+                    <span class="hidden sm:inline">Самоперевірка</span>
+                </button>
+                <button id="modeGridBtn" onclick="switchMode('grid')" 
+                    class="px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center space-x-1.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-border-all"></i>
+                    <span class="hidden sm:inline">Сітка</span>
+                </button>
+            </div>
+
+            <!-- UTILITY CONTROLS -->
+            <div class="flex items-center space-x-2">
+                <button id="soundToggleBtn" onclick="toggleSound()" title="Увімкнути/вимкнути звук (M)"
+                    class="w-9 h-9 rounded-xl bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center justify-center border border-slate-600">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button id="fullscreenBtn" onclick="toggleFullscreen()" title="Повноекранний режим (F)"
+                    class="w-9 h-9 rounded-xl bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center justify-center border border-slate-600">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+                <button onclick="toggleHelpModal()" title="Гарячі клавіші та допомога"
+                    class="w-9 h-9 rounded-xl bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center justify-center border border-slate-600">
+                    <i class="fa-solid fa-keyboard"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 flex flex-col justify-between items-center relative">
+
+        <!-- 1. CAROUSEL / STANDARD MODE -->
+        <div id="carouselView" class="w-full flex-1 flex flex-col items-center justify-center max-w-2xl my-auto py-4">
+            
+            <!-- Progress counter & Bar -->
+            <div class="w-full mb-4 flex items-center justify-between text-xs sm:text-sm text-slate-400 font-medium">
+                <span id="carouselCounter">Картка 1 з 9</span>
+                <span class="text-indigo-400 hover:underline cursor-pointer flex items-center gap-1" onclick="flipCard()">
+                    <i class="fa-solid fa-rotate text-xs"></i> Торкніться або [Пробіл] щоб перевернути
+                </span>
+            </div>
+            
+            <div class="w-full bg-slate-800 rounded-full h-2 mb-6 overflow-hidden border border-slate-700/50">
+                <div id="carouselProgressBar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 11%;"></div>
+            </div>
+
+            <!-- FLIP CARD CONTAINER -->
+            <div id="mainCardWrapper" class="w-full h-80 sm:h-96 perspective-1000 cursor-pointer group" onclick="flipCard()">
+                <div id="mainCardInner" class="relative w-full h-full transform-style-3d card-shadow rounded-3xl border border-slate-700 bg-slate-800/90 text-white p-6 sm:p-8 flex flex-col justify-between">
+                    
+                    <!-- FRONT SIDE -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden bg-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-slate-700/80">
+                        <div class="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                            <span class="bg-indigo-950/80 px-3 py-1 rounded-full border border-indigo-800/50">Питання</span>
+                            <i class="fa-solid fa-hand-pointer text-slate-500 group-hover:text-indigo-400 transition"></i>
+                        </div>
+                        
+                        <div class="flex-1 flex items-center justify-center text-center my-4">
+                            <h2 id="cardFrontText" class="text-xl sm:text-2xl md:text-3xl font-semibold text-slate-100 leading-relaxed">
+                                <!-- Dynamic Text -->
+                            </h2>
+                        </div>
+
+                        <!-- HINT SECTION -->
+                        <div class="mt-2 text-center">
+                            <button onclick="toggleHint(event)" class="text-xs text-slate-400 hover:text-indigo-300 transition py-1 px-3 rounded-lg bg-slate-900/50 border border-slate-700/50 inline-flex items-center gap-1.5">
+                                <i class="fa-regular fa-lightbulb text-amber-400"></i>
+                                <span id="hintBtnText">Показати підказку</span>
+                            </button>
+                            <p id="cardHintText" class="hidden text-xs text-amber-300/90 mt-2 italic bg-amber-950/30 p-2 rounded-lg border border-amber-800/30">
+                                <!-- Dynamic Hint -->
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- BACK SIDE -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-indigo-950 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-indigo-500/40">
+                        <div class="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                            <span class="bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800/50">Відповідь</span>
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+                        </div>
+                        
+                        <div class="flex-1 flex items-center justify-center text-center my-4">
+                            <p id="cardBackText" class="text-lg sm:text-xl md:text-2xl font-medium text-slate-100 leading-relaxed">
+                                <!-- Dynamic Text -->
+                            </p>
+                        </div>
+
+                        <div class="text-center text-xs text-indigo-300/70 font-medium">
+                            Натисніть для повороту назад
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- CAROUSEL NAVIGATION CONTROLS -->
+            <div class="flex items-center justify-between w-full mt-6 px-2">
+                <button onclick="prevCard()" class="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition flex items-center space-x-2 border border-slate-700 active:scale-95 shadow">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span class="hidden sm:inline">Назад</span>
+                </button>
+
+                <div class="text-xs text-slate-500 hidden sm:block">
+                    Свайп 👈/👉 або стрілки клавіатури
+                </div>
+
+                <button onclick="nextCard()" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition flex items-center space-x-2 shadow-lg shadow-indigo-600/30 active:scale-95">
+                    <span class="hidden sm:inline">Вперед</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. SELF-TEST MODE -->
+        <div id="testView" class="hidden w-full flex-1 flex-col items-center justify-center max-w-2xl my-auto py-4">
+            
+            <!-- TEST STATS BAR -->
+            <div class="w-full bg-slate-800/80 p-4 rounded-2xl border border-slate-700 mb-6 grid grid-cols-3 gap-2 text-center">
+                <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                    <div class="text-xs text-slate-400 mb-0.5">Залишилось</div>
+                    <div id="testRemainingCount" class="text-xl font-bold text-indigo-400">9</div>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                    <div class="text-xs text-slate-400 mb-0.5">Вивчено</div>
+                    <div id="testLearnedCount" class="text-xl font-bold text-emerald-400">0</div>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                    <div class="text-xs text-slate-400 mb-0.5">На повторення</div>
+                    <div id="testReviewCount" class="text-xl font-bold text-amber-400">0</div>
+                </div>
+            </div>
+
+            <!-- TEST CARD AREA -->
+            <div id="testCardContainer" class="w-full">
+                <div id="testCardWrapper" class="w-full h-80 sm:h-96 perspective-1000 cursor-pointer" onclick="revealTestAnswer()">
+                    <div id="testCardInner" class="relative w-full h-full transform-style-3d card-shadow rounded-3xl border border-slate-700 bg-slate-800 text-white p-6 sm:p-8 flex flex-col justify-between">
+                        
+                        <!-- FRONT -->
+                        <div class="absolute inset-0 w-full h-full backface-hidden bg-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-slate-700">
+                            <div class="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                                <span class="bg-indigo-950 px-3 py-1 rounded-full border border-indigo-800">Перевірка</span>
+                                <span class="text-slate-400">Торкніться, щоб відкрити</span>
+                            </div>
+                            
+                            <div class="flex-1 flex items-center justify-center text-center my-4">
+                                <h2 id="testCardFrontText" class="text-xl sm:text-2xl md:text-3xl font-semibold text-slate-100">
+                                    <!-- Dynamic Front -->
+                                </h2>
+                            </div>
+
+                            <div class="text-center text-xs text-slate-500">
+                                Клавіша [Пробіл] або тап для відкриття відповіді
+                            </div>
+                        </div>
+
+                        <!-- BACK -->
+                        <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-indigo-500/50">
+                            <div class="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                                <span class="bg-emerald-950 px-3 py-1 rounded-full border border-emerald-800">Правильна відповідь</span>
+                            </div>
+                            
+                            <div class="flex-1 flex items-center justify-center text-center my-4">
+                                <p id="testCardBackText" class="text-lg sm:text-xl md:text-2xl font-medium text-slate-100">
+                                    <!-- Dynamic Back -->
+                                </p>
+                            </div>
+
+                            <div class="text-center text-xs text-slate-400">
+                                Оцініть своє знання нижче:
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TEST CONTROLS (Displayed after revealing or ready) -->
+                <div id="testActions" class="mt-6 grid grid-cols-2 gap-4 w-full opacity-50 pointer-events-none transition-all duration-300">
+                    <button id="btnMarkReview" onclick="markTestResult(false)" 
+                        class="py-3.5 px-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold transition flex items-center justify-center gap-2 active:scale-95">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>На повторення (1)</span>
+                    </button>
+                    
+                    <button id="btnMarkLearned" onclick="markTestResult(true)" 
+                        class="py-3.5 px-4 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold transition flex items-center justify-center gap-2 active:scale-95">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Вивчено (2)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SUMMARY SCREEN (Hidden initially) -->
+            <div id="testCompletionScreen" class="hidden w-full bg-slate-800/90 rounded-3xl p-8 border border-slate-700 text-center flex-col items-center justify-center my-auto">
+                <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-emerald-500/30">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Чудова робота!</h2>
+                <p class="text-slate-300 text-sm mb-6">Ви пройшли всі картки з теми «Траєкторія, шлях та переміщення».</p>
+                
+                <div class="flex flex-col sm:flex-row gap-3 justify-center w-full max-w-md mx-auto">
+                    <button onclick="resetTestMode()" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-lg shadow-indigo-600/30">
+                        <i class="fa-solid fa-rotate-right me-2"></i>Пройти знову
+                    </button>
+                    <button onclick="switchMode('carousel')" class="px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium transition">
+                         повернутися до огляду
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 3. GRID MODE -->
+        <div id="gridView" class="hidden w-full flex-1 my-4">
+            <div class="mb-4 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-slate-200">Усі картки теми (9)</h2>
+                <span class="text-xs text-slate-400">Натисніть на картку, щоб розкрити відповідь</span>
+            </div>
+
+            <div id="gridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic Grid Items -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- KEYBOARD & HELP MODAL -->
+    <div id="helpModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-slate-800 border border-slate-700 rounded-3xl max-w-md w-full p-6 text-slate-200 shadow-2xl relative">
+            <button onclick="toggleHelpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="bg-indigo-600/20 text-indigo-400 p-2.5 rounded-xl border border-indigo-500/30">
+                    <i class="fa-solid fa-keyboard text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">Гарячі клавіші та керування</h3>
+            </div>
+            
+            <div class="space-y-3 text-xs sm:text-sm">
+                <div class="flex justify-between items-center py-1.5 border-b border-slate-700/60">
+                    <span class="text-slate-400">Перевернути картку</span>
+                    <kbd class="px-2 py-1 bg-slate-900 rounded border border-slate-700 font-mono text-indigo-300">Пробіл</kbd> або <kbd class="px-2 py-1 bg-slate-900 rounded border border-slate-700 font-mono text-indigo-300">↑ / ↓</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1.5 border-b border-slate-700/60">
+                    <span class="text-slate-400">Попередня / Наступна</span>
+                    <kbd class="px-2 py-1 bg-slate-900 rounded border border-slate-700 font-mono text-indigo-300">← / →</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1.5 border-b border-slate-700/60">
+                    <span class="text-slate-400">На повторення / Вивчено</span>
+                    <kbd class="px-2 py-1 bg-slate-900 rounded border border-slate-700 font-mono text-indigo-300">1</kbd> / <kbd class="px-2 py-1 bg-slate-900 rounded border border-slate-700 font-mono text-indigo-300">2</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1.5 border-b border-slate-700/60">
+                    <span class="text-slate-400">Повноекранний режим</span>
+                    <kbd class="px-2 py-1 bg-slate-900 rounded border border-slate-700 font-mono text-indigo-300">F</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1.5 border-b border-slate-700/60">
+                    <span class="text-slate-400">Увімкнути/Вимкнути звук</span>
+                    <kbd class="px-2 py-1 bg-slate-900 rounded border border-slate-700 font-mono text-indigo-300">M</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1.5">
+                    <span class="text-slate-400">Жести на смартфоні</span>
+                    <span class="text-indigo-300 font-medium">Свайп 👈👉 / Вгору</span>
+                </div>
+            </div>
+
+            <button onclick="toggleHelpModal()" class="w-full mt-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition">
+                Зрозуміло
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // FLASHCARDS DATA (Strictly based on prompt text)
+        const flashcardsData = [
+            {
+                id: 1,
+                front: "Що таке траєкторія руху?",
+                back: "Траєкторія руху – це уявна лінія, яку описує в просторі точка, що рухається.",
+                hint: "Це уявна лінія, вздовж якої рухається точка."
+            },
+            {
+                id: 2,
+                front: "На які види поділяють рухи тіл за формою траєкторії?",
+                back: "За формою траєкторії рухи тіл поділяють на прямолінійний та криволінійний.",
+                hint: "Залежить від того, є лінія прямою чи зігнутою."
+            },
+            {
+                id: 3,
+                front: "Від чого залежить форма траєкторії руху тіла?",
+                back: "Траєкторія відносна, її форма залежить від вибору системи відліку, відносно якої розглядається рух.",
+                hint: "Траєкторія є відносною величинами."
+            },
+            {
+                id: 4,
+                front: "Що таке шлях у фізиці?",
+                back: "Шлях – це фізична величина, яка дорівнює довжині траєкторії.",
+                hint: "Повна довжина лінії, яку пройшло тіло."
+            },
+            {
+                id: 5,
+                front: "Яким символом позначають шлях та яка його одиниця вимірювання в СІ?",
+                back: "Шлях позначають символом $l$ (ель). Одиниця шляху в СІ – метр ($[l] = \\text{м}$).",
+                hint: "Латинська літера $l$ та базова одиниця довжини."
+            },
+            {
+                id: 6,
+                front: "Що таке переміщення?",
+                back: "Переміщення – це напрямлений відрізок прямої, який з'єднує початкове та кінцеве положення тіла.",
+                hint: "Прямий відрізок зі стрілкою від старту до фінішу."
+            },
+            {
+                id: 7,
+                front: "Яким символом позначають переміщення і що означає стрілка над ним?",
+                back: "Переміщення позначають символом $\\vec{s}$ (ес). Стрілка показує, що переміщення має не тільки значення (модуль), але й напрямок.",
+                hint: "Векторне позначення зі стрілкою."
+            },
+            {
+                id: 8,
+                front: "Що таке модуль переміщення та як він позначається?",
+                back: "Модуль переміщення – це відстань, на яку перемістилося тіло в даному напрямку. Позначається символом $s$ (без стрілки).",
+                hint: "Числове значення відстані без урахування напрямку."
+            },
+            {
+                id: 9,
+                front: "Яка одиниця вимірювання переміщення в СІ?",
+                back: "Одиниця переміщення в СІ така сама, як і одиниця шляху, – метр ($[s] = \\text{м}$).",
+                hint: "Збігається з одиницею вимірювання шляху."
+            }
+        ];
+
+        // APP STATE
+        let currentMode = 'carousel'; // 'carousel' | 'test' | 'grid'
+        let currentIndex = 0;
+        let isFlipped = false;
+        let soundEnabled = true;
+
+        // Self-Test State
+        let testQueue = [...flashcardsData.map(c => c.id)];
+        let testCurrentCard = null;
+        let testIsRevealed = false;
+        let testLearnedIds = new Set();
+        let testReviewIds = new Set();
+
+        // Audio Context Synthesizer
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                const now = ctx.currentTime;
+
+                if (type === 'flip') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'swipe') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.exponentialRampToValueAtTime(120, now + 0.06);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                } else if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'review') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.setValueAtTime(280, now + 0.08);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'complete') {
+                    // Celebration chime
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.connect(g);
+                        g.connect(ctx.destination);
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        g.gain.setValueAtTime(0.2, now + idx * 0.1);
+                        g.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+                        o.start(now + idx * 0.1);
+                        o.stop(now + idx * 0.1 + 0.25);
+                    });
+                }
+            } catch (e) {
+                console.error("Audio error", e);
+            }
+        }
+
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCarouselCard();
+            setupTouchGestures();
+            setupKeyboardShortcuts();
+            renderGrid();
+        });
+
+        // KATEX MATH HELPER
+        function renderMathInString(str) {
+            // Replace $...$ with rendered KaTeX html
+            return str.replace(/\$(.*?)\$/g, (match, formula) => {
+                try {
+                    return katex.renderToString(formula, { throwOnError: false });
+                } catch (e) {
+                    return formula;
+                }
+            });
+        }
+
+        // MODE SWITCHING
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Buttons UI
+            document.getElementById('modeCarouselBtn').className = mode === 'carousel' 
+                ? 'px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1.5 text-white bg-indigo-600 shadow'
+                : 'px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-white';
+            
+            document.getElementById('modeTestBtn').className = mode === 'test' 
+                ? 'px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1.5 text-white bg-indigo-600 shadow'
+                : 'px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-white';
+            
+            document.getElementById('modeGridBtn').className = mode === 'grid' 
+                ? 'px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1.5 text-white bg-indigo-600 shadow'
+                : 'px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-white';
+
+            // Views UI
+            document.getElementById('carouselView').classList.toggle('hidden', mode !== 'carousel');
+            document.getElementById('carouselView').classList.toggle('flex', mode === 'carousel');
+            
+            document.getElementById('testView').classList.toggle('hidden', mode !== 'test');
+            document.getElementById('testView').classList.toggle('flex', mode === 'test');
+            
+            document.getElementById('gridView').classList.toggle('hidden', mode !== 'grid');
+
+            if (mode === 'test') {
+                if (!testCurrentCard && testQueue.length > 0) {
+                    loadNextTestCard();
+                }
+            }
+
+            playSound('swipe');
+        }
+
+        // CAROUSEL LOGIC
+        function renderCarouselCard() {
+            const card = flashcardsData[currentIndex];
+            isFlipped = false;
+            
+            const cardInner = document.getElementById('mainCardInner');
+            cardInner.classList.remove('rotate-y-180');
+
+            document.getElementById('cardFrontText').innerHTML = renderMathInString(card.front);
+            document.getElementById('cardBackText').innerHTML = renderMathInString(card.back);
+            document.getElementById('cardHintText').innerText = card.hint;
+            
+            // Reset hint display
+            document.getElementById('cardHintText').classList.add('hidden');
+            document.getElementById('hintBtnText').innerText = 'Показати підказку';
+
+            // Counter & Progress
+            document.getElementById('carouselCounter').innerText = `Картка ${currentIndex + 1} з ${flashcardsData.length}`;
+            const pct = ((currentIndex + 1) / flashcardsData.length) * 100;
+            document.getElementById('carouselProgressBar').style.width = `${pct}%`;
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const cardInner = document.getElementById('mainCardInner');
+            if (isFlipped) {
+                cardInner.classList.add('rotate-y-180');
+            } else {
+                cardInner.classList.remove('rotate-y-180');
+            }
+            playSound('flip');
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCarouselCard();
+                playSound('swipe');
+            } else {
+                currentIndex = flashcardsData.length - 1;
+                renderCarouselCard();
+                playSound('swipe');
+            }
+        }
+
+        function nextCard() {
+            if (currentIndex < flashcardsData.length - 1) {
+                currentIndex++;
+                renderCarouselCard();
+                playSound('swipe');
+            } else {
+                currentIndex = 0;
+                renderCarouselCard();
+                playSound('swipe');
+            }
+        }
+
+        function toggleHint(e) {
+            e.stopPropagation(); // prevent flipping card on hint click
+            const hintText = document.getElementById('cardHintText');
+            const hintBtnText = document.getElementById('hintBtnText');
+            if (hintText.classList.contains('hidden')) {
+                hintText.classList.remove('hidden');
+                hintBtnText.innerText = 'Сховати підказку';
+                playSound('flip');
+            } else {
+                hintText.classList.add('hidden');
+                hintBtnText.innerText = 'Показати підказку';
+            }
+        }
+
+        // SELF-TEST LOGIC
+        function loadNextTestCard() {
+            if (testQueue.length === 0) {
+                // Show completion screen
+                document.getElementById('testCardContainer').classList.add('hidden');
+                document.getElementById('testCompletionScreen').classList.remove('hidden');
+                document.getElementById('testCompletionScreen').classList.add('flex');
+                playSound('complete');
+                return;
+            }
+
+            document.getElementById('testCardContainer').classList.remove('hidden');
+            document.getElementById('testCompletionScreen').classList.add('hidden');
+            document.getElementById('testCompletionScreen').classList.remove('flex');
+
+            const cardId = testQueue[0];
+            testCurrentCard = flashcardsData.find(c => c.id === cardId);
+            testIsRevealed = false;
+
+            const inner = document.getElementById('testCardInner');
+            inner.classList.remove('rotate-y-180');
+
+            document.getElementById('testCardFrontText').innerHTML = renderMathInString(testCurrentCard.front);
+            document.getElementById('testCardBackText').innerHTML = renderMathInString(testCurrentCard.back);
+
+            // Reset action buttons state
+            const actions = document.getElementById('testActions');
+            actions.classList.add('opacity-50', 'pointer-events-none');
+
+            updateTestStats();
+        }
+
+        function revealTestAnswer() {
+            if (testIsRevealed) return;
+            testIsRevealed = true;
+            document.getElementById('testCardInner').classList.add('rotate-y-180');
+            document.getElementById('testActions').classList.remove('opacity-50', 'pointer-events-none');
+            playSound('flip');
+        }
+
+        function markTestResult(isLearned) {
+            if (!testIsRevealed || !testCurrentCard) return;
+
+            const cardId = testCurrentCard.id;
+            testQueue.shift(); // remove from current head
+
+            if (isLearned) {
+                testLearnedIds.add(cardId);
+                testReviewIds.delete(cardId);
+                playSound('correct');
+            } else {
+                testReviewIds.add(cardId);
+                testQueue.push(cardId); // push back to review
+                playSound('review');
+            }
+
+            loadNextTestCard();
+        }
+
+        function updateTestStats() {
+            document.getElementById('testRemainingCount').innerText = testQueue.length;
+            document.getElementById('testLearnedCount').innerText = testLearnedIds.size;
+            document.getElementById('testReviewCount').innerText = testReviewIds.size;
+        }
+
+        function resetTestMode() {
+            testQueue = [...flashcardsData.map(c => c.id)];
+            testLearnedIds.clear();
+            testReviewIds.clear();
+            testCurrentCard = null;
+            loadNextTestCard();
+            playSound('swipe');
+        }
+
+        // GRID MODE LOGIC
+        function renderGrid() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+
+            flashcardsData.forEach(card => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'bg-slate-800 border border-slate-700/80 rounded-2xl p-5 hover:border-indigo-500/50 transition duration-200 cursor-pointer flex flex-col justify-between space-y-3 group';
+                cardEl.onclick = () => {
+                    const ans = cardEl.querySelector('.grid-answer');
+                    ans.classList.toggle('hidden');
+                    playSound('flip');
+                };
+
+                cardEl.innerHTML = `
+                    <div class="flex items-center justify-between text-xs font-semibold text-indigo-400">
+                        <span>#${card.id}</span>
+                        <i class="fa-solid fa-chevron-down text-slate-500 group-hover:text-indigo-400 transition"></i>
+                    </div>
+                    <div class="font-medium text-slate-100 text-sm sm:text-base">
+                        ${renderMathInString(card.front)}
+                    </div>
+                    <div class="grid-answer hidden pt-3 border-t border-slate-700/60 text-xs sm:text-sm text-emerald-300 font-medium">
+                        ${renderMathInString(card.back)}
+                    </div>
+                `;
+                container.appendChild(cardEl);
+            });
+        }
+
+        // TOUCH GESTURE HANDLING (MOBILE SWIPES)
+        function setupTouchGestures() {
+            const mainCard = document.getElementById('carouselView');
+            let startX = 0;
+            let startY = 0;
+            let endX = 0;
+            let endY = 0;
+
+            mainCard.addEventListener('touchstart', (e) => {
+                startX = e.changedTouches[0].screenX;
+                startY = e.changedTouches[0].screenY;
+            }, { passive: true });
+
+            mainCard.addEventListener('touchend', (e) => {
+                endX = e.changedTouches[0].screenX;
+                endY = e.changedTouches[0].screenY;
+                handleGesture();
+            }, { passive: true });
+
+            function handleGesture() {
+                const diffX = endX - startX;
+                const diffY = endY - startY;
+
+                // Thresholds
+                if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (diffX < 0) {
+                        nextCard(); // Swipe Left -> Next
+                    } else {
+                        prevCard(); // Swipe Right -> Prev
+                    }
+                } else if (diffY < -50 && Math.abs(diffY) > Math.abs(diffX)) {
+                    flipCard(); // Swipe Up -> Flip
+                }
+            }
+        }
+
+        // KEYBOARD SHORTCUTS
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ignore keypresses if modal is open or typing in input
+                if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+                    toggleFullscreen();
+                    return;
+                }
+                if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') {
+                    toggleSound();
+                    return;
+                }
+
+                if (currentMode === 'carousel') {
+                    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                        e.preventDefault();
+                        flipCard();
+                    } else if (e.code === 'ArrowRight') {
+                        nextCard();
+                    } else if (e.code === 'ArrowLeft') {
+                        prevCard();
+                    }
+                } else if (currentMode === 'test') {
+                    if (!testIsRevealed) {
+                        if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                            e.preventDefault();
+                            revealTestAnswer();
+                        }
+                    } else {
+                        if (e.key === '1' || e.code === 'KeyA') {
+                            markTestResult(false);
+                        } else if (e.key === '2' || e.code === 'KeyD' || e.code === 'Enter') {
+                            markTestResult(true);
+                        }
+                    }
+                }
+            });
+        }
+
+        // UTILITIES
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                playSound('swipe');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error enabling fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+            playSound('swipe');
+        }
+
+        function toggleHelpModal() {
+            const modal = document.getElementById('helpModal');
+            if (modal.classList.contains('opacity-0')) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                playSound('swipe');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+    </script>
+</body>
+</html>
